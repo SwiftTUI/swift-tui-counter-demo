@@ -1,0 +1,15 @@
+node_modules/
+.build/
+.swiftpm/
+.DS_Store
+DerivedData/
+*.xcuserstate
+dist/
+pages-dist/
+*.tgz
+coverage/
+*.lcov
+.cache/
+*.tsbuildinfo
+bazel-*
+SwiftUIExample/SwiftUIExample.xcodeproj/xcuserdata/
