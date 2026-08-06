@@ -4,7 +4,7 @@ struct CounterView: View {
 
   @Environment(\.terminalSize) private var terminalSize
   @State private var count = 0
-  @State private var activeRipple: Bool = false
+  @State private var activeRippleID: Int? = nil
 
   var body: some View {
     VStack(spacing: 1) {
@@ -16,15 +16,18 @@ struct CounterView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .onChange(of: count) {
-      if !activeRipple {
-        activeRipple = true
+      if activeRippleID == nil {
+        activeRippleID = count
       }
     }
     .background {
-      if activeRipple {
+      if let rippleID = activeRippleID {
         RippleLayer(reach: reach) {
-          activeRipple = false
+          if activeRippleID == rippleID {
+            activeRippleID = nil
+          }
         }
+        .id(rippleID)
       }
     }
   }
