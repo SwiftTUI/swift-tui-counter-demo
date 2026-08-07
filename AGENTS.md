@@ -42,9 +42,8 @@ swiftly run swift test --package-path counter    # counter tests
 bun --cwd WebExample dev                         # browser demo
 ```
 
-`//:swift_tui_counter_demo_native_gate` in the org root runs
-`tools/bazel/native_gate.sh` (the platform-appropriate `check_counter_demo.sh`
-suite).
+`//:swift_tui_counter_demo_native_gate` in the org root runs the
+platform-appropriate `Scripts/check_counter_demo.sh` suite.
 
 ## Conventions
 
