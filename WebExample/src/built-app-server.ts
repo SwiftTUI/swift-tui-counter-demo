@@ -12,6 +12,7 @@ const isolationHeaders = {
 
 export interface BuiltWebExampleServerOptions {
   hostname?: string;
+  includeScrollChainHarness?: boolean;
   port?: number;
   terminalAppDist?: string;
   webDist?: string;
@@ -29,6 +30,13 @@ export function serveBuiltWebExample(
     fetch: (req) => {
       const url = new URL(req.url);
 
+      if (
+        options.includeScrollChainHarness
+        && url.pathname === "/__scroll-chain-harness"
+      ) {
+        return withIsolationHeaders(scrollChainHarnessResponse(url));
+      }
+
       if (url.pathname.startsWith("/TerminalApp/dist/")) {
         const pathname = url.pathname.slice("/TerminalApp/dist/".length);
         return fileResponse(resolveWithin(terminalAppDist, pathname));
@@ -38,6 +46,42 @@ export function serveBuiltWebExample(
       return fileResponse(resolveWithin(webDist, pathname));
     },
   });
+}
+
+function scrollChainHarnessResponse(
+  url: URL
+): Response {
+  const requestedMode = url.searchParams.get("mode");
+  const mode = requestedMode === "headroom" || requestedMode === "edge"
+    ? requestedMode
+    : "none";
+  const iframeSource = `/?embed=marketing&scrollChainFixture=${mode}`;
+
+  return new Response(
+    `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SwiftTUI scroll-chain browser harness</title>
+    <style>
+      html, body { margin: 0; min-height: 100%; }
+      main { min-height: 2400px; padding-top: 80px; }
+      iframe { display: block; width: 720px; height: 480px; margin: 0 auto; border: 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <iframe src="${iframeSource}" title="SwiftTUI scroll-chain fixture"></iframe>
+    </main>
+  </body>
+</html>`,
+    {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+      },
+    }
+  );
 }
 
 function resolveWithin(
