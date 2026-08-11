@@ -1,6 +1,6 @@
 # Counter
 
-> One `CounterApp` source, three hosts: the same scene runs unchanged as a terminal executable, a native SwiftUI window, and a static WASI bundle in the browser — proving a SwiftTUI App targets every host without per-target source forks (terminal + native SwiftUI surface + static WASI bundle, one source, three hosts).
+> One `CounterApp` source, three hosts: the same scene runs unchanged as a terminal executable, a native SwiftUI window, and a static WASI bundle in the browser. A SwiftTUI App targets every host without per-target source forks.
 
 ## Run
 
@@ -54,7 +54,7 @@ swiftly run swift build \
 | --- | --- |
 | [`Sources/CounterCore/CounterApp.swift`](Sources/CounterCore/CounterApp.swift) | The shared `CounterView` + `CounterApp` consumed by every host. Imports `SwiftTUIRuntime` (not the `SwiftTUI` umbrella) so it stays host-neutral and WASI-safe. |
 | [`Sources/counter/CounterAppTerminalHost.swift`](Sources/counter/CounterAppTerminalHost.swift) | Terminal entry point. A thin `@main` wrapper uses the `SwiftTUI.App` runner over the shared scene (native only). |
-| [`Sources/CounterSwiftUI/SwiftUIHostApp.swift`](Sources/CounterSwiftUI/SwiftUIHostApp.swift) | Native SwiftUI entry point — `@main SwiftUI.App` hosting the shared scene via `SwiftUIHostAppView` (macOS-only SwiftPM target). |
+| [`Sources/CounterSwiftUI/SwiftUIHostApp.swift`](Sources/CounterSwiftUI/SwiftUIHostApp.swift) | Native SwiftUI entry point: a `@main SwiftUI.App` hosting the shared scene via `SwiftUIHostAppView` (macOS-only SwiftPM target). |
 | [`Sources/CounterWASI/main.swift`](Sources/CounterWASI/main.swift) | Browser entry point with top-level `WASIRunner.run(CounterApp.self)`. It depends only on `SwiftTUIWASI`, so no server or Dispatch stack enters the wasm. |
 | [`Tests/CounterCoreTests/`](Tests/CounterCoreTests/) | Smoke tests asserting trivial instantiability from any host target. |
 
@@ -92,5 +92,5 @@ the shared `CounterApp` and `CounterView` from each host.
 
 ## See also
 
-- [`../WebExample/`](../WebExample/) — the full browser/WASI deployment shell that serves a `.wasm` like this one.
-- [SwiftTUI DocC reference](https://swifttui.sh/docs/documentation/) — `SwiftTUIRuntime`, `SwiftTUIWASI`, and `SwiftUIHost` API surface.
+- [`../WebExample/`](../WebExample/): the full browser/WASI deployment shell that serves a `.wasm` like this one.
+- [SwiftTUI DocC reference](https://swifttui.sh/docs/documentation/): `SwiftTUIRuntime`, `SwiftTUIWASI`, and `SwiftUIHost` API surface.

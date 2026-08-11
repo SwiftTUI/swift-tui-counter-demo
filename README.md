@@ -25,7 +25,7 @@ swift run --package-path counter CounterSwiftUI
 ```
 
 Run the same scene in the **browser** (requires [Bun](https://bun.sh) and the
-`swift-6.3.3-RELEASE_wasm` Swift SDK — see
+`swift-6.3.3-RELEASE_wasm` Swift SDK; see
 [`WebExample/README.md`](WebExample/README.md)):
 
 ```bash
@@ -56,10 +56,10 @@ bun run check:web      # browser bundle only (wasm SDK + Binaryen required)
 
 ## See also
 
-- [SwiftTUI](https://github.com/SwiftTUI/swift-tui) — the framework
-- [swift-tui-examples](https://github.com/SwiftTUI/swift-tui-examples) — the full example roster
-- [SwiftTUI DocC reference](https://swifttui.sh/docs/documentation/) — `SwiftTUIRuntime`, `SwiftTUIWASI`, and `SwiftUIHost` API surface
+- [SwiftTUI](https://github.com/SwiftTUI/swift-tui): the framework
+- [swift-tui-examples](https://github.com/SwiftTUI/swift-tui-examples): the full example roster
+- [SwiftTUI DocC reference](https://swifttui.sh/docs/documentation/): `SwiftTUIRuntime`, `SwiftTUIWASI`, and `SwiftUIHost` API surface
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT; see [LICENSE](LICENSE).
