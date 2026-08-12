@@ -124,6 +124,9 @@ a:focus-visible {
   background: transparent !important;
 }
 
+/* The embedded host applies inline styles; !important keeps the demo's
+   full-bleed contract even against the standalone page's resizable-frame
+   geometry (80% frame, resize handle). */
 .terminal-host .webhost-scene {
   display: grid !important;
   grid-template-rows: 1fr !important;
@@ -132,6 +135,11 @@ a:focus-visible {
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  resize: none !important;
 }
 
 .terminal-host .webhost-scene__header {
