@@ -2,6 +2,12 @@
 //
 // The reference embedding path for a single SwiftTUI scene. The Swift app is
 // the same CounterApp used by the terminal and native SwiftUI hosts.
+//
+// The load-bearing part is small: `createController` below wires
+// `createWebHostApp` (the mount) to `createWasmSceneRuntimeFactory` (the wasm
+// runtime). Everything else in this file draws page chrome, reports status,
+// and forwards a few keys. A minimal host needs only the mount element and
+// the `createController` call.
 
 import {
   createWebHostApp,
@@ -209,6 +215,9 @@ async function bootstrap(): Promise<void> {
   );
 }
 
+// The integration point. The runtime factory loads `app.wasm` (in a worker
+// when the browser allows it); `createWebHostApp` reads the scene manifest,
+// mounts a canvas on `mount`, and connects input and resize events.
 async function createController(
   mount: HTMLElement,
   onSceneResize: (event: WasmSceneResizeEvent) => void,
@@ -344,6 +353,9 @@ function collectFrameDiagnostic(diagnostic: WebHostFrameDiagnosticRecord): void 
   console.debug("SwiftTUI frame", row);
 }
 
+// Browsers reserve Shift+Tab for focus navigation, so the runtime never sees
+// it. Capture it while the terminal has focus and send the backtab escape
+// sequence to the scene instead.
 function installShiftTabPassthrough(
   terminalHost: HTMLElement,
   getController: () => WebHostAppController | undefined,

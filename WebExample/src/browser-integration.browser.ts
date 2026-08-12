@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { chromium } from "playwright";
 
-import { serveBuiltWebExample } from "./built-app-server.ts";
+import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
 interface FrameDiagnosticRow {
   frame?: unknown;
@@ -19,7 +19,7 @@ declare global {
 const expectFrameDiagnostics = process.env.WEBEXAMPLE_EXPECT_FRAME_DIAGNOSTICS === "1";
 
 test("WebExample renders WASI surface frames into a nonblank canvas", async () => {
-  const server = serveBuiltWebExample();
+  const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: {

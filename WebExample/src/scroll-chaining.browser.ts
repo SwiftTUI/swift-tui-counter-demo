@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { chromium, webkit } from "playwright";
 
-import { serveBuiltWebExample } from "./built-app-server.ts";
+import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
 declare global {
   interface Window {
@@ -26,7 +26,7 @@ const scenarios: Array<{
 ];
 
 test("embedded WebHost wheels chain to the outer page only without inner headroom", async () => {
-  const server = serveBuiltWebExample({ includeScrollChainHarness: true });
+  const server = await serveBuiltWebExample({ includeScrollChainHarness: true });
 
   try {
     for (const browserLane of browserLanes) {

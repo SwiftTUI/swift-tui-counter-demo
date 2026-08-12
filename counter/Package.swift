@@ -6,7 +6,8 @@ var platforms: [SupportedPlatform]? = nil
 var targets: [Target] = [
   // Shared, host-neutral core. Depends on the runtime/authoring layer only —
   // NOT the `SwiftTUI` convenience umbrella, whose default runner serves over
-  // HTTP via FlyingFox (→ Dispatch) and therefore cannot build for WASI.
+  // HTTP via the built-in `SwiftTUIWebHost` server (→ POSIX sockets and
+  // Dispatch) and therefore cannot build for WASI.
   // Keeping the core at `SwiftTUIRuntime` lets every host consume it, including
   // the browser/WASI host below.
   .target(
@@ -16,7 +17,7 @@ var targets: [Target] = [
     ]
   ),
   // Terminal host: the batteries-included `SwiftTUI.App` runner (terminal +
-  // WebHost). FlyingFox/Dispatch are available on native platforms, so this
+  // WebHost). Sockets and Dispatch are available on native platforms, so this
   // host imports the umbrella directly. It can no longer reach `SwiftTUI`
   // transitively through the core, so the dependency is declared here.
   .executableTarget(
@@ -27,7 +28,8 @@ var targets: [Target] = [
     ]
   ),
   // Browser host: runs inside the browser via `WASIRunner.run`. Its dependency
-  // closure stops at `SwiftTUIWASI`, which never reaches FlyingFox.
+  // closure stops at `SwiftTUIWASI`, which never reaches the web-host server
+  // stack.
   .executableTarget(
     name: "CounterWASI",
     dependencies: [

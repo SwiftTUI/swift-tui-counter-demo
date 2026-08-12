@@ -1,13 +1,36 @@
 # SwiftTUI Counter Demo
 
-> One `CounterApp` source, three hosts: the same scene runs unchanged as a
-> terminal executable, a native SwiftUI window, and a static WASI bundle in the
-> browser. This repository is the clonable demo behind the live counter on
-> [swifttui.sh](https://swifttui.sh).
+> One `CounterApp` source runs on three hosts: a terminal, a native SwiftUI
+> window, and the browser. This repository is the clonable demo behind the
+> live counter on [swifttui.sh](https://swifttui.sh).
+
+## What this demo shows
+
+[`counter/Sources/CounterCore/CounterApp.swift`](counter/Sources/CounterCore/CounterApp.swift)
+contains the full app: one `View` and one `App`. Every host compiles this one
+file. Each host adds only a small entry point:
+
+| Host | Entry point | Platform |
+| --- | --- | --- |
+| Terminal | [`counter/Sources/counter/`](counter/Sources/counter) | macOS, Linux |
+| Native SwiftUI window | [`counter/Sources/CounterSwiftUI/`](counter/Sources/CounterSwiftUI) | macOS |
+| Browser (WebAssembly) | [`WebExample/`](WebExample) | Any modern browser |
+
+The source files carry inline commentary. Read them in the table order above;
+the comments explain each SwiftTUI concept as it appears, with pointers for
+readers who know SwiftUI.
+
+## Requirements
+
+- Swift 6.3 or later, for every host. The easiest install is
+  [swiftly](https://www.swift.org/swiftly/). This repository pins its
+  toolchain in `.swift-version`, and swiftly reads that file.
+- The native SwiftUI window requires macOS 15 or later.
+- The browser host requires Node.js 18 or later and one JavaScript package
+  manager. npm is sufficient; Bun also works. The WebAssembly build has two
+  more requirements; see [Run in the browser](#3-run-in-the-browser).
 
 ## Quick start
-
-Requires Swift 6.3+ (the easiest install is [swiftly](https://www.swift.org/swiftly/)).
 
 ```bash
 git clone https://github.com/SwiftTUI/swift-tui-counter-demo.git
@@ -15,44 +38,94 @@ cd swift-tui-counter-demo
 swift run --package-path counter counter
 ```
 
-Increment the counter with `Space` or `Return`. Quit with `Ctrl-C`. Each press
-launches its own ripple; overlapping rings brighten through screen blending.
+If your default `swift` is older than 6.3, put `swiftly run` in front of each
+Swift command: `swiftly run swift run --package-path counter counter`.
 
-Run the same scene in a **native SwiftUI window** (macOS only):
+## Build and run each host
+
+### 1. Run in the terminal
+
+```bash
+swift run --package-path counter counter
+```
+
+Press `Space` or `Return` to increment the counter. Press `Ctrl-C` to quit.
+Each press starts its own ripple. Overlapping rings brighten through screen
+blending.
+
+### 2. Run as a native macOS window
 
 ```bash
 swift run --package-path counter CounterSwiftUI
 ```
 
-Run the same scene in the **browser** (requires [Bun](https://bun.sh) and the
-`swift-6.3.3-RELEASE_wasm` Swift SDK; see
-[`WebExample/README.md`](WebExample/README.md)):
+This command builds the macOS-only `CounterSwiftUI` target and opens a real
+`SwiftUI.WindowGroup` that hosts the same scene. To use Xcode instead: open
+[`counter/Package.swift`](counter/Package.swift), select the `CounterSwiftUI`
+scheme, and run. Read
+[`SwiftUIHostApp.swift`](counter/Sources/CounterSwiftUI/SwiftUIHostApp.swift)
+for the host pattern, including the `SwiftUI::` module-selector syntax that
+mixed SwiftTUI + SwiftUI files need.
+
+### 3. Run in the browser
+
+The browser host compiles the app to WebAssembly and mounts it on a canvas.
+It has two extra requirements:
+
+1. The `swift-6.3.3-RELEASE_wasm` Swift SDK. If the SDK is missing, the build
+   stops and prints the exact install command.
+2. [Binaryen](https://github.com/WebAssembly/binaryen) (`wasm-opt`), optional
+   but recommended. Without it the wasm binary stays larger.
 
 ```bash
-bun install
-bun --cwd WebExample dev
+npm install
+cd WebExample
+npm run dev
 ```
+
+Then open <http://localhost:3000>. The first build is slow: the WebAssembly
+compile can take several minutes. The build scripts print each step and warn
+before the slow parts. Bun users can substitute `bun install` and `bun run
+dev`; the build scripts themselves run on Node.
+
+See [`WebExample/README.md`](WebExample/README.md) for the embedding pattern
+and the production build.
+
+### Choose debug or release
+
+SwiftTUI is a source dependency: each build compiles the framework together
+with the app, and the build configuration applies to both. This is different
+from SwiftUI, which ships as a prebuilt system framework. The trade-off:
+
+- A **release** build optimizes the framework, so it is slow to compile.
+- A **debug** build compiles fast, but the unoptimized framework is slow at
+  run time.
+
+Use debug builds (the `swift run` default) to iterate. Add `-c release` to
+judge how the demo really performs. The browser scripts follow the same rule:
+`npm run dev` makes a debug wasm build, `npm run build` makes the release
+bundle.
 
 ## Layout
 
 | Path | Role |
 | --- | --- |
-| [`counter/`](counter) | The three-host SwiftPM package: `CounterCore` (shared, host-neutral scene), `counter` (terminal executable), `CounterSwiftUI` (native macOS window), `CounterWASI` (browser/WASI executable) |
-| [`WebExample/`](WebExample) | The browser deployment shell: a Bun-served host that compiles the app for WASI and mounts it on a canvas via `@swifttui/web`. The public website builds its live demo from this directory |
+| [`counter/`](counter) | The three-host SwiftPM package: `CounterCore` (the shared scene), `counter` (terminal executable), `CounterSwiftUI` (native macOS window), `CounterWASI` (browser/WASI executable) |
+| [`WebExample/`](WebExample) | The browser deployment shell: build scripts that compile the app for WASI and a static server that mounts it on a canvas via `@swifttui/web`. The public website builds its live demo from this directory |
 
-The interesting part is [`counter/Sources/CounterCore/CounterApp.swift`](counter/Sources/CounterCore/CounterApp.swift):
-one `View` + `App` definition consumed unchanged by every host. See
-[`counter/README.md`](counter/README.md) for how the package keeps the shared
-core host-neutral (it depends on `SwiftTUIRuntime`, not the `SwiftTUI`
-umbrella, so the WASI build never pulls in a server stack).
+See [`counter/README.md`](counter/README.md) for how the package keeps the
+shared core host-neutral: it depends on `SwiftTUIRuntime`, not the `SwiftTUI`
+umbrella, so the WASI build never pulls in a server stack.
 
 ## Checks
 
 ```bash
-bun run check          # full gate: counter build+test, TerminalApp build+test, web bundle
-bun run check:linux    # counter package only (what Linux CI runs)
-bun run check:web      # browser bundle only (wasm SDK + Binaryen required)
+npm run check          # full gate: counter build+test, TerminalApp build+test, web bundle
+npm run check:linux    # counter package only (what Linux CI runs)
+npm run check:web      # browser bundle only (wasm SDK required)
 ```
+
+The check scripts prefer Bun when it is installed and fall back to npm.
 
 ## See also
 

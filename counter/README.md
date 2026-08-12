@@ -1,29 +1,35 @@
 # Counter
 
-> One `CounterApp` source, three hosts: the same scene runs unchanged as a terminal executable, a native SwiftUI window, and a static WASI bundle in the browser. A SwiftTUI App targets every host without per-target source forks.
+> One `CounterApp` source, three hosts: the same scene runs unchanged as a
+> terminal executable, a native SwiftUI window, and a static WASI bundle in
+> the browser. A SwiftTUI App targets every host without per-target source
+> forks.
 
 ## Run
 
 ```bash
-swiftly run swift run --package-path counter counter
+swift run --package-path counter counter
 ```
 
-Increment the counter with `Space` or `Return`. Quit with `Ctrl-C`.
-The value uses the Gallery counter's `TextFigure` treatment.
-Each press launches its own ripple, so rapid presses leave several rings in
-flight. Overlapping rings brighten through screen blending.
+If your default `swift` is older than 6.3, put `swiftly run` in front of each
+Swift command in this file.
 
-Run the same scene on a **native SwiftUI surface** (macOS-only SwiftPM target):
+Press `Space` or `Return` to increment the counter. Press `Ctrl-C` to quit.
+The value uses the Gallery counter's `TextFigure` treatment. Each press starts
+its own ripple, so rapid presses leave several rings in flight. Overlapping
+rings brighten through screen blending.
+
+Run the same scene in a **native SwiftUI window** (macOS-only SwiftPM target):
 
 ```bash
-swiftly run swift run --package-path counter CounterSwiftUI
+swift run --package-path counter CounterSwiftUI
 ```
 
-Build the **static WASI bundle** for the browser host. It is a separate product.
-The [Build](#build) section explains the required flags.
+Build the **static WASI bundle** for the browser host. It is a separate
+product. The [Build](#build) section explains the required flags.
 
 ```bash
-swiftly run swift build \
+swift build \
   --package-path counter \
   --swift-sdk swift-6.3.3-RELEASE_wasm \
   -c release \
@@ -43,18 +49,20 @@ swiftly run swift build \
 - `SwiftUIHost` from `swift-tui-swiftui` mounts the same scene in a native
   `SwiftUI.Scene` and `WindowGroup` on macOS.
 - `SwiftTUIWASI` runs the same scene through `WASIRunner.run` in the browser.
-  Its dependency closure excludes FlyingFox and Dispatch. Thus, the wasm has no
-  server or runtime stack.
+  Its dependency closure excludes the `SwiftTUIWebHost` server and Dispatch.
+  Thus, the wasm has no server or runtime stack.
 - Identity-preserving `ForEach` animation layers and `.screen` compositing let
   independently timed ripples overlap on each host.
 
 ## Layout
 
+Each source file carries inline commentary. Read them in this order:
+
 | Path | Role |
 | --- | --- |
 | [`Sources/CounterCore/CounterApp.swift`](Sources/CounterCore/CounterApp.swift) | The shared `CounterView` + `CounterApp` consumed by every host. Imports `SwiftTUIRuntime` (not the `SwiftTUI` umbrella) so it stays host-neutral and WASI-safe. |
 | [`Sources/counter/CounterAppTerminalHost.swift`](Sources/counter/CounterAppTerminalHost.swift) | Terminal entry point. A thin `@main` wrapper uses the `SwiftTUI.App` runner over the shared scene (native only). |
-| [`Sources/CounterSwiftUI/SwiftUIHostApp.swift`](Sources/CounterSwiftUI/SwiftUIHostApp.swift) | Native SwiftUI entry point: a `@main SwiftUI.App` hosting the shared scene via `SwiftUIHostAppView` (macOS-only SwiftPM target). |
+| [`Sources/CounterSwiftUI/SwiftUIHostApp.swift`](Sources/CounterSwiftUI/SwiftUIHostApp.swift) | Native SwiftUI entry point: a `@main SwiftUI.App` hosting the shared scene via `SwiftUIHostAppView` (macOS-only SwiftPM target). Its comments explain the `SwiftUI::` module-selector syntax. |
 | [`Sources/CounterWASI/main.swift`](Sources/CounterWASI/main.swift) | Browser entry point with top-level `WASIRunner.run(CounterApp.self)`. It depends only on `SwiftTUIWASI`, so no server or Dispatch stack enters the wasm. |
 | [`Tests/CounterCoreTests/`](Tests/CounterCoreTests/) | Smoke tests asserting trivial instantiability from any host target. |
 
@@ -62,13 +70,15 @@ swiftly run swift build \
 
 The browser host is a **separate product** named `CounterWASI`. The terminal
 executable imports the `SwiftTUI` umbrella. Its runner serves HTTP through
-FlyingFox and Dispatch, which do not build for WASI. Therefore, build the WASI
-product with the `swift build` command above.
+SwiftTUI's built-in `SwiftTUIWebHost` server, which needs POSIX sockets and
+Dispatch. Neither builds for WASI. Therefore, build the WASI product with the
+`swift build` command above.
 
-The resulting `.wasm` artifact can be served by the same Bun-driven host shell
-used by [`../WebExample/`](../WebExample/). The required `-Osize` plus
-`-disable-llvm-merge-functions-pass` flags are documented in
-`../WebExample/AGENTS.md`.
+The `-Osize` and `-disable-llvm-merge-functions-pass` flags are required for
+release wasm builds. A plain `-O` build emits merged helper functions whose
+signatures exceed the browser WebAssembly limit of 1000 parameters, and the
+module then fails to parse. [`../WebExample/`](../WebExample/) automates the
+same build and serves the result.
 
 The native SwiftUI host, `CounterSwiftUI`, is a macOS-only target.
 `Package.swift` guards it with `#if os(macOS)`. Other platforms do not build
@@ -84,11 +94,11 @@ this target.
 ## Test
 
 ```bash
-swiftly run swift test --package-path counter
+swift test --package-path counter
 ```
 
-The command runs the `CounterCoreTests` target. These smoke tests create
-the shared `CounterApp` and `CounterView` from each host.
+The command runs the `CounterCoreTests` target. These smoke tests create the
+shared `CounterApp` and `CounterView` from each host.
 
 ## See also
 

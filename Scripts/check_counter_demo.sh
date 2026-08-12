@@ -22,8 +22,9 @@ Suites:
   linux  Build the counter package (debug + release) and run CounterCoreTests.
   macos  Linux coverage plus the WebExample/TerminalApp package (build + test).
          On macOS the counter build also covers the CounterSwiftUI host target.
-  web    Install the Bun workspace and build the WebExample browser bundle
-         (requires the swift-6.3.3-RELEASE_wasm SDK, Bun, and Binaryen).
+  web    Install the workspace (Bun when available, npm otherwise) and build
+         the WebExample browser bundle (requires the swift-6.3.3-RELEASE_wasm
+         SDK, Node, and Binaryen).
 
 Set SWIFTTUI_COUNTER_DEMO_SWIFTPM_SCRATCH to reuse one sequential SwiftPM
 scratch directory across the package builds. Do not share that directory
@@ -93,7 +94,13 @@ require_command() {
 
 require_command swiftly
 if run_web_suite; then
-  require_command bun
+  # The web build scripts run on Node; Bun is optional and preferred for the
+  # workspace install when present.
+  require_command node
+  if ! command -v bun >/dev/null 2>&1 && ! command -v npm >/dev/null 2>&1; then
+    >&2 echo "The web suite needs bun or npm to install the workspace."
+    exit 1
+  fi
 fi
 
 run_swift() {
@@ -173,17 +180,29 @@ run_macos_checks() {
 run_web_checks() {
   print_section "WebExample browser bundle"
 
-  if [ -f "$repo_root/package.json" ] && [ -f "$repo_root/bun.lock" ] && [ "$skip_bun_install" -eq 0 ]; then
-    run_step \
-      "Install Bun workspace dependencies" \
-      "$repo_root" \
-      bun install --frozen-lockfile
+  if [ "$skip_bun_install" -eq 0 ]; then
+    if command -v bun >/dev/null 2>&1 && [ -f "$repo_root/bun.lock" ]; then
+      run_step \
+        "Install workspace dependencies (bun)" \
+        "$repo_root" \
+        bun install --frozen-lockfile
+    else
+      run_step \
+        "Install workspace dependencies (npm)" \
+        "$repo_root" \
+        npm install --no-fund --no-audit
+    fi
   fi
 
   run_step \
     "Build WebExample web demo" \
     "$repo_root/WebExample" \
-    bun run build
+    node scripts/build-terminal.mjs
+
+  run_step \
+    "Bundle WebExample web demo" \
+    "$repo_root/WebExample" \
+    node scripts/build-web.mjs
 }
 
 if run_linux_suite; then

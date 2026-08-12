@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { chromium } from "playwright";
 
-import { serveBuiltWebExample } from "./built-app-server.ts";
+import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
 interface DamageSample {
   hasDamage: boolean;
@@ -16,7 +16,7 @@ declare global {
 }
 
 test("Counter activation emits raster damage for the changed frame", async () => {
-  const server = serveBuiltWebExample();
+  const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: { width: 1280, height: 900 },

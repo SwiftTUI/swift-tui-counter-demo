@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { webkit } from "playwright";
 
-import { serveBuiltWebExample } from "./built-app-server.ts";
+import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
 declare global {
   interface Window {
@@ -18,7 +18,7 @@ const soakMilliseconds = Number(
 const journeyQuery = process.env.WEBEXAMPLE_WEBKIT_QUERY ?? "";
 
 test("WebExample counter survives the WebKit WASI journey", async () => {
-  const server = serveBuiltWebExample();
+  const server = await serveBuiltWebExample();
   const browser = await webkit.launch();
   const page = await browser.newPage({
     viewport: { width: 1280, height: 900 },

@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { chromium } from "playwright";
 
-import { serveBuiltWebExample } from "./built-app-server.ts";
+import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
 declare global {
   interface Window {
@@ -15,7 +15,7 @@ interface CounterFrame {
 }
 
 test("WebExample commits every authored counter activation in order", async () => {
-  const server = serveBuiltWebExample();
+  const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: { width: 1280, height: 900 },

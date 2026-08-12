@@ -14,6 +14,6 @@
     "check:linux": "Scripts/check_counter_demo.sh --linux-only --skip-clean",
     "check:macos": "Scripts/check_counter_demo.sh --macos-only --skip-clean",
     "check:web": "Scripts/check_counter_demo.sh --web-only --skip-clean",
-    "build:webexample": "bun run --cwd WebExample build"
+    "build:webexample": "node WebExample/scripts/build-terminal.mjs && node WebExample/scripts/build-web.mjs"
   }
 }

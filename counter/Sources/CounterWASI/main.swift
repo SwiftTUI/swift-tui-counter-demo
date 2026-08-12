@@ -1,10 +1,17 @@
-import SwiftTUIWASI
-import CounterCore
+// The browser host. Unlike the terminal host, whose runner serves HTTP from a
+// native process, the WASI host runs *inside* the browser: this wasm module is
+// the client. `@swifttui/web` loads it and mounts its scene on a canvas.
+//
+// Two things make that possible:
+//
+// - The entry point is `WASIRunner.run`, not a server runner. In the browser
+//   it drives frames on a canvas that `@swifttui/web` provides.
+// - The dependency closure stops at `SwiftTUIWASI` + `CounterCore`. It never
+//   reaches the web-host server stack or Dispatch, which do not build for
+//   WASI. That is why `CounterCore` imports `SwiftTUIRuntime`, not the
+//   `SwiftTUI` umbrella.
 
-// The browser host. Unlike the terminal host (which uses the batteries-included
-// `SwiftTUI.App` runner that serves over HTTP via FlyingFox), the WASI host runs
-// *inside* the browser: the wasm module is the client, mounted onto a canvas by
-// `@swifttui/web`. The entry point is therefore `WASIRunner.run`, not a server
-// runner — and the dependency closure deliberately stops at `SwiftTUIWASI` +
-// `CounterCore`, neither of which reaches FlyingFox/Dispatch.
+import CounterCore
+import SwiftTUIWASI
+
 try await WASIRunner.run(CounterApp.self)

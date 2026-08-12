@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { chromium, type Browser } from "playwright";
 
-import { serveBuiltWebExample } from "./built-app-server.ts";
+import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
 declare global {
   interface Window {
@@ -21,7 +21,7 @@ const lanes = [
 ];
 
 test("counter interactions commit across runtime profiles and render modes", async () => {
-  const server = serveBuiltWebExample();
+  const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   try {
     for (const query of lanes) {
