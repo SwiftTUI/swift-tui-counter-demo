@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BUN_VERSION: "1.3.13"
-  SWIFTLY_VERSION: "1.1.1"
+  BUN_VERSION: "1.3.14"
+  SWIFTLY_VERSION: "1.1.3"
 
 jobs:
   linux-counter:
@@ -25,7 +25,7 @@ jobs:
       SWIFTTUI_COUNTER_DEMO_SWIFTPM_SCRATCH: ${{ github.workspace }}/swift-tui-counter-demo/.build/shared-swiftpm-linux
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: swift-tui-counter-demo
       - name: Install Linux dependencies
@@ -41,7 +41,7 @@ jobs:
             python3 \
             unzip
       - name: Cache Swiftly toolchain
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.local/share/swiftly
@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: swift-tui-counter-demo/Scripts/install_swift_toolchain_ci.sh swift-tui-counter-demo/.swift-version
       - name: Cache SwiftPM
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             swift-tui-counter-demo/.build/shared-swiftpm-linux
@@ -75,11 +75,11 @@ jobs:
       SWIFTTUI_COUNTER_DEMO_SWIFTPM_SCRATCH: ${{ github.workspace }}/swift-tui-counter-demo/.build/shared-swiftpm-macos
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: swift-tui-counter-demo
       - name: Cache Swiftly toolchain
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           # Deliberately no restore-keys. macOS installs toolchains into
           # ~/Library/Developer/Toolchains, which is not cached here, so a
@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: swift-tui-counter-demo/Scripts/install_swift_toolchain_ci.sh swift-tui-counter-demo/.swift-version
       - name: Cache macOS build products
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             swift-tui-counter-demo/.build/shared-swiftpm-macos
@@ -113,11 +113,11 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: swift-tui-counter-demo
       - name: Cache Swiftly toolchain
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           # Deliberately no restore-keys — see the macOS job note above.
           path: ~/.swiftly
@@ -132,7 +132,7 @@ jobs:
         shell: bash
         run: brew install binaryen
       - name: Cache web build products
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             swift-tui-counter-demo/WebExample/TerminalApp/.build
@@ -142,7 +142,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-counter-demo-web-swiftpm-
       - name: Cache Bun deps
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.bun/install/cache
