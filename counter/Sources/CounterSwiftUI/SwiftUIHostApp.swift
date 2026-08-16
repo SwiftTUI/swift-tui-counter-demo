@@ -1,73 +1,44 @@
-// The native SwiftUI host. This target mounts its own `CounterApp` (declared in
-// `CounterApp.swift`, over the shared `CounterView`) inside a real macOS
+// The native SwiftUI host. This target mounts its own `TUICounterApp` (declared in
+// `TUICounterApp.swift`, over the shared `CounterView`) inside a real macOS
 // `WindowGroup` through `SwiftUIHost` from `swift-tui-swiftui`.
 //
-// About the unusual name qualifiers in this file: `SwiftUIHost` re-exports the
-// SwiftTUI authoring layer, so `App`, `Scene`, `State`, `View`, and `Group`
-// each exist twice here — once from SwiftUI, once from SwiftTUI. Ambiguous
-// uses must name their module. (A few, such as `WindowGroup` below, stay bare
-// because the expected type already selects the SwiftUI candidate.) Two
-// spellings name a module:
+// Note: since `SwiftUIHost` re-exports the SwiftTUI authoring layer, 
+// the names `App`, `Scene`, `State`, and `View` each exist twice here — 
+// once from SwiftUI, once from SwiftTUI.
+// Ambiguous uses must name their module, which this code does with the Swift 6.3
+// module selector `::` syntax (`SwiftUI::App`). This resolves the entity in the named
+// module — and works in cases where the earlier member-style qualification
+// (`SwiftUI.View`) does not.
 //
-// - `SwiftUI.View` — member-style qualification, the classic spelling.
-// - `SwiftUI::App` — the Swift 6.3 module selector. It resolves the name in
-//   the named module and works in every position, including attributes such
-//   as `@SwiftUI::State`, where the dot spelling is ambiguous to parse.
-//
-// A SwiftTUI view file never needs this. The collision exists only in host
+// Pure SwiftTUI files do not need this. The collision exists only in host
 // files like this one, where both frameworks meet.
 
-import CounterCore
 import SwiftUI
 import SwiftUIHost
 
+// A regular SwiftUI App.
 @main
-struct CounterHostApp: SwiftUI::App {
+struct SwiftUIHostApp: SwiftUI::App {
   var body: some SwiftUI::Scene {
     WindowGroup {
-      CounterHostRootView()
+      SwiftUIBridgeView()
     }
   }
 }
 
-// The bridge view. `SwiftUIHostAppState` boots a SwiftTUI runtime for the
-// shared app; `SwiftUIHostAppView` renders that runtime as SwiftUI content.
-private struct CounterHostRootView: SwiftUI.View {
-  // The host state is created once, in `launchHostIfNeeded`, because the
-  // launch can throw. `@SwiftUI::State` keeps it alive across renders.
-  @SwiftUI::State private var hostState: SwiftUIHostAppState<CounterApp>?
-  @SwiftUI::State private var launchError: String?
+// The SwiftUI<>SwiftTUI bridge view. 
+//
+// A bridge requires two things:
+// - A `SwiftUIHostAppState` containing the TUI app's state
+// - A `SwiftUIHostAppView` that renders the state to SwiftUI
+private struct SwiftUIBridgeView: SwiftUI::View {
+  
+  // The TUI state is stored in a SwiftUI @State variable.
+  @SwiftUI::State private var tuiState = try! SwiftUIHostAppState(app: TUICounterApp())
 
   var body: some SwiftUI.View {
-    SwiftUI.Group {
-      if let hostState {
-        // The live SwiftTUI scene, rendered inside SwiftUI.
-        SwiftUIHostAppView(state: hostState)
-      } else if let launchError {
-        SwiftUI.ContentUnavailableView {
-          SwiftUI.Label("SwiftTUI Host Failed", systemImage: "exclamationmark.triangle")
-        } description: {
-          SwiftUI.Text(launchError)
-        }
-      } else {
-        SwiftUI.ProgressView("Starting SwiftTUI host")
-      }
-    }
-    .task {
-      launchHostIfNeeded()
-    }
+    // The live SwiftTUI scene, rendered inside SwiftUI.
+    SwiftUIHostAppView(state: tuiState)
   }
 
-  @MainActor
-  private func launchHostIfNeeded() {
-    guard hostState == nil, launchError == nil else {
-      return
-    }
-
-    do {
-      hostState = try SwiftUIHostAppState(app: CounterApp())
-    } catch {
-      launchError = String(describing: error)
-    }
-  }
 }
