@@ -15,12 +15,12 @@ Install the APK on an `arm64-v8a` device or emulator:
 ./gradlew :app:installDebug
 ```
 
-Tap the counter button to increment it. Each tap starts its own ripple, the
+Tap the counter button to increment it. That taps start ripples, the
 same as every other host.
 
 ## Requirements
 
-Android is a **0.9 preview, arm64-only support tier**. The build needs four
+Android is a **arm64-only support tier**. The build needs four
 things:
 
 1. The Android SDK, with Platform 36.1. Android Studio installs it.
@@ -82,17 +82,9 @@ side is therefore a dynamic library, not an executable.
 The AAR does not bundle the Swift runtime. The plugin supplies the runtime from
 your Swift Android SDK, so the APK contains exactly one copy.
 
-## Local development
-
-This example resolves SwiftTUI from the public `0.9.0` tag. When a
-`swift-tui` checkout is a sibling of this repository, the Gradle plugin mirrors
-the public dependency to it automatically. The mirror is written to
-`SwiftPackage/.swiftpm/`, so it never changes how the `counter` package
-resolves for the other three hosts.
-
 ## Limits
 
-This is a preview host. It does not yet support IME composition, the clipboard,
+This host does not yet support IME composition, the clipboard,
 or link opening. `arm64-v8a` is the only packaged ABI.
 
 ## See also
