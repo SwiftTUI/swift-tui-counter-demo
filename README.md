@@ -1,20 +1,28 @@
 # SwiftTUI Counter Demo
 
-> One `CounterApp` source runs on three hosts: a terminal, a native SwiftUI
-> window, and the browser. This repository is the clonable demo behind the
-> live counter on [swifttui.sh](https://swifttui.sh).
+> One `CounterView` source runs on four hosts: a terminal, a native SwiftUI
+> window, the browser, and Android. This repository is the clonable demo behind
+> the live counter on [swifttui.sh](https://swifttui.sh).
 
 ## What this demo shows
 
-[`counter/Sources/CounterCore/CounterApp.swift`](counter/Sources/CounterCore/CounterApp.swift)
-contains the full app: one `View` and one `App`. Every host compiles this one
-file. Each host adds only a small entry point:
+[`counter/Sources/CounterCore/CounterView.swift`](counter/Sources/CounterCore/CounterView.swift)
+contains the full app: one `View`. Every host compiles this one file.
+
+Each host then declares its own `App`. The `App` is four lines — a
+`WindowGroup` around `CounterView()` — but it belongs to the host, not to the
+shared core. A host's `App` is where its entry point attaches, and each runner
+attaches differently: the terminal host puts `@main` on it, the SwiftUI host
+passes it to `SwiftUIHostAppState`, the browser host passes it to
+`WASIRunner.run`, and the Android host passes it to `AndroidHostSceneHost`.
+Keeping the `App` per host means the shared core never has to name a runner.
 
 | Host | Entry point | Platform |
 | --- | --- | --- |
 | Terminal | [`counter/Sources/counter/`](counter/Sources/counter) | macOS, Linux |
 | Native SwiftUI window | [`counter/Sources/CounterSwiftUI/`](counter/Sources/CounterSwiftUI) | macOS |
 | Browser (WebAssembly) | [`WebExample/`](WebExample) | Any modern browser |
+| Android (Jetpack Compose) | [`AndroidExample/`](AndroidExample) | Android 9+, `arm64-v8a` |
 
 The source files carry inline commentary. Read them in the table order above;
 the comments explain each SwiftTUI concept as it appears, with pointers for
@@ -29,6 +37,9 @@ readers who know SwiftUI.
 - The browser host requires Node.js 18 or later and one JavaScript package
   manager. npm is sufficient; Bun also works. The WebAssembly build has two
   more requirements; see [Run in the browser](#3-run-in-the-browser).
+- The Android host requires the Android SDK, an NDK, and the Swift Android SDK.
+  See [`AndroidExample/README.md`](AndroidExample/README.md). No other host
+  needs them.
 
 ## Quick start
 
@@ -91,6 +102,22 @@ dev`; the build scripts themselves run on Node.
 See [`WebExample/README.md`](WebExample/README.md) for the embedding pattern
 and the production build.
 
+### 4. Run on Android
+
+```bash
+cd AndroidExample
+./gradlew :app:installDebug
+```
+
+The command builds the app for `arm64-v8a` and installs it on a connected
+device or emulator. A Gradle plugin cross-compiles the same scene to a native
+library, and a Compose `SwiftTUIHostView` renders it.
+
+This host needs the Android SDK, NDK `27.3.13750724`, and the
+`swift-6.3.3-RELEASE_android` Swift SDK. See
+[`AndroidExample/README.md`](AndroidExample/README.md) for the install steps
+and the four files that make up the integration.
+
 ### Choose debug or release
 
 SwiftTUI is a source dependency: each build compiles the framework together
@@ -110,8 +137,9 @@ bundle.
 
 | Path | Role |
 | --- | --- |
-| [`counter/`](counter) | The three-host SwiftPM package: `CounterCore` (the shared scene), `counter` (terminal executable), `CounterSwiftUI` (native macOS window), `CounterWASI` (browser/WASI executable) |
+| [`counter/`](counter) | The core SwiftPM package: `CounterCore` (the shared view), `counter` (terminal executable), `CounterSwiftUI` (native macOS window), `CounterWASI` (browser/WASI executable) |
 | [`WebExample/`](WebExample) | The browser deployment shell: build scripts that compile the app for WASI and a static server that mounts it on a canvas via `@swifttui/web`. The public website builds its live demo from this directory |
+| [`AndroidExample/`](AndroidExample) | The Android app: a Gradle project plus a small SwiftPM package that exposes `CounterCore` to the Android host as a native library |
 
 See [`counter/README.md`](counter/README.md) for how the package keeps the
 shared core host-neutral: it depends on `SwiftTUIRuntime`, not the `SwiftTUI`
@@ -131,6 +159,7 @@ The check scripts prefer Bun when it is installed and fall back to npm.
 
 - [SwiftTUI](https://github.com/SwiftTUI/swift-tui): the framework
 - [swift-tui-examples](https://github.com/SwiftTUI/swift-tui-examples): the full example roster
+- [swift-tui-android](https://github.com/SwiftTUI/swift-tui-android): the Android AAR and Gradle plugin
 - [SwiftTUI DocC reference](https://swifttui.sh/docs/documentation/): `SwiftTUIRuntime`, `SwiftTUIWASI`, and `SwiftUIHost` API surface
 
 ## License

@@ -1,7 +1,7 @@
 // frontend.ts
 //
-// The reference embedding path for a single SwiftTUI scene. The Swift app is
-// the same CounterApp used by the terminal and native SwiftUI hosts.
+// The reference embedding path for a single SwiftTUI scene. The Swift app
+// wraps the same CounterView used by the terminal and native SwiftUI hosts.
 //
 // The load-bearing part is small: `createController` below wires
 // `createWebHostApp` (the mount) to `createWasmSceneRuntimeFactory` (the wasm
@@ -159,7 +159,7 @@ async function bootstrap(): Promise<void> {
               terminalLabel,
               el("span", {
                 class: "terminal-caption",
-                text: "The same CounterApp, hosted in the browser",
+                text: "The same CounterView, hosted in the browser",
               }),
             ],
           }),

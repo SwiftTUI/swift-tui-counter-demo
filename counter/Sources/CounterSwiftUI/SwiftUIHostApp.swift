@@ -1,5 +1,6 @@
-// The native SwiftUI host. This target mounts the shared `CounterApp` inside
-// a real macOS `WindowGroup` through `SwiftUIHost` from `swift-tui-swiftui`.
+// The native SwiftUI host. This target mounts its own `CounterApp` (declared in
+// `CounterApp.swift`, over the shared `CounterView`) inside a real macOS
+// `WindowGroup` through `SwiftUIHost` from `swift-tui-swiftui`.
 //
 // About the unusual name qualifiers in this file: `SwiftUIHost` re-exports the
 // SwiftTUI authoring layer, so `App`, `Scene`, `State`, `View`, and `Group`

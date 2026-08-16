@@ -40,8 +40,8 @@ framework as well as the app: debug compiles fast but runs slower, release
 - `@swifttui/build` uses `SwiftTUIWASI` and `WASIRunner` in manifest mode. It
   packages the same `App` declaration as a static manifest and wasm file. Any
   static host can then deploy these files.
-- The WASI target reuses `CounterCore.CounterApp`. Thus, the terminal, native
-  SwiftUI, and browser hosts run the same app.
+- The WASI target reuses `CounterCore.CounterView`. Thus, the terminal, native
+  SwiftUI, browser, and Android hosts run the same view.
 
 ## What to copy when adopting this pattern
 
@@ -63,10 +63,12 @@ Only the `.terminal-host` mount and WebHost bootstrap are required.
 
 ## App relationship to counter
 
-`WebExample` imports `CounterCore`. It exposes `CounterApp` through the stable
-`WebExampleApp` name. Thus, the terminal, native SwiftUI, and browser hosts
-compile the same `CounterView` and `CounterApp` source. The public browser
-reference contains one scene.
+`WebExample` imports `CounterCore` and declares its own `App`, named
+`WebExampleApp`, around the shared `CounterView`. Every host does the same:
+`CounterCore` exports the view, and each host owns the `App` that its runner
+mounts. The public browser reference contains one scene. If you fork this
+example, swap `CounterView` for your own root view in
+`TerminalApp/Sources/WebExampleScenes/WebExampleApp.swift`.
 
 ## Build
 

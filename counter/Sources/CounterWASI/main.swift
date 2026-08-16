@@ -11,7 +11,6 @@
 //   WASI. That is why `CounterCore` imports `SwiftTUIRuntime`, not the
 //   `SwiftTUI` umbrella.
 
-import CounterCore
 import SwiftTUIWASI
 
 try await WASIRunner.run(CounterApp.self)

@@ -5,13 +5,15 @@
 import CounterCore
 import SwiftTUI
 
-// `@main` must sit on a type in the executable target, so this thin wrapper
-// re-declares the app and forwards its `body` to the shared `CounterApp`.
-// The wrapper conforms to `SwiftTUI.App`; the shared scene stays host-neutral
-// in `CounterCore`.
+// `@main` must sit on a type in the executable target, so this host declares
+// its own `App` around the shared `CounterView`. The declaration conforms to
+// `SwiftTUI.App`, which names a runner; keeping it here is what lets
+// `CounterCore` stay host-neutral and export the view alone.
 @main
 struct CounterAppTerminalHost: App {
   var body: some Scene {
-    CounterApp().body
+    WindowGroup("Counter", id: WindowIdentifier("counter")) {
+      CounterView()
+    }
   }
 }

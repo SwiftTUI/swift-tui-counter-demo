@@ -13,8 +13,9 @@ package small and focused on the embedding contract.
 
 Three cooperating parts:
 
-- **`TerminalApp/`** — A Swift package with a stable `WebExampleApp` alias for
-  the shared `CounterCore.CounterApp`. A small executable calls
+- **`TerminalApp/`** — A Swift package whose `WebExampleApp` declares this
+  host's `App` over the shared `CounterCore.CounterView`. (`CounterCore`
+  exports no `App`; each host owns its own.) A small executable calls
   `WASIRunner.run(...)`.
 - **`scripts/`** — Node-compatible build and serve scripts (`.mjs`, no Bun
   APIs). `build-terminal.mjs` builds the wasm + manifest through

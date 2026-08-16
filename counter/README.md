@@ -1,9 +1,13 @@
 # Counter
 
-> One `CounterApp` source, three hosts: the same scene runs unchanged as a
-> terminal executable, a native SwiftUI window, and a static WASI bundle in
-> the browser. A SwiftTUI App targets every host without per-target source
-> forks.
+> One `CounterView` source, four hosts: the same view runs unchanged as a
+> terminal executable, a native SwiftUI window, a static WASI bundle in the
+> browser, and a native Android app. A SwiftTUI App targets every host without
+> per-target source forks.
+>
+> This package holds the first three entry points. The Android entry point is
+> in [`../AndroidExample/`](../AndroidExample), because its Gradle build needs
+> its own SwiftPM package.
 
 ## Run
 
@@ -41,11 +45,11 @@ swift build \
 ## Demonstrates
 
 - `SwiftTUIRuntime` is the host-neutral authoring layer, not the `SwiftTUI`
-  umbrella. One `CounterView` and `CounterApp` source compiles for each host,
-  including WASI.
-- The native hosts use the `SwiftTUI` umbrella runner. The terminal host is a
-  small `@main` wrapper over the shared scene. It uses the `SwiftTUI.App`
-  runner.
+  umbrella. One `CounterView` source compiles for each host, including WASI.
+- Each host declares its own `App` over that shared view. `CounterCore` exports
+  no `App`, so it never names a runner and stays host-neutral.
+- The terminal host puts `@main` on its own `App` and uses the `SwiftTUI`
+  umbrella runner.
 - `SwiftUIHost` from `swift-tui-swiftui` mounts the same scene in a native
   `SwiftUI.Scene` and `WindowGroup` on macOS.
 - `SwiftTUIWASI` runs the same scene through `WASIRunner.run` in the browser.
@@ -60,11 +64,13 @@ Each source file carries inline commentary. Read them in this order:
 
 | Path | Role |
 | --- | --- |
-| [`Sources/CounterCore/CounterApp.swift`](Sources/CounterCore/CounterApp.swift) | The shared `CounterView` + `CounterApp` consumed by every host. Imports `SwiftTUIRuntime` (not the `SwiftTUI` umbrella) so it stays host-neutral and WASI-safe. |
-| [`Sources/counter/CounterAppTerminalHost.swift`](Sources/counter/CounterAppTerminalHost.swift) | Terminal entry point. A thin `@main` wrapper uses the `SwiftTUI.App` runner over the shared scene (native only). |
-| [`Sources/CounterSwiftUI/SwiftUIHostApp.swift`](Sources/CounterSwiftUI/SwiftUIHostApp.swift) | Native SwiftUI entry point: a `@main SwiftUI.App` hosting the shared scene via `SwiftUIHostAppView` (macOS-only SwiftPM target). Its comments explain the `SwiftUI::` module-selector syntax. |
+| [`Sources/CounterCore/CounterView.swift`](Sources/CounterCore/CounterView.swift) | The shared `CounterView` every host compiles. Imports `SwiftTUIRuntime` (not the `SwiftTUI` umbrella) so it stays host-neutral and WASI-safe. It declares no `App`. |
+| [`Sources/counter/CounterAppTerminalHost.swift`](Sources/counter/CounterAppTerminalHost.swift) | Terminal entry point. Its own `@main App` wraps `CounterView` and uses the `SwiftTUI.App` runner (native only). |
+| [`Sources/CounterSwiftUI/CounterApp.swift`](Sources/CounterSwiftUI/CounterApp.swift) | The SwiftUI host's `App`. |
+| [`Sources/CounterSwiftUI/SwiftUIHostApp.swift`](Sources/CounterSwiftUI/SwiftUIHostApp.swift) | Native SwiftUI entry point: a `@main SwiftUI.App` hosting that `App` via `SwiftUIHostAppView` (macOS-only SwiftPM target). Its comments explain the `SwiftUI::` module-selector syntax. |
+| [`Sources/CounterWASI/CounterApp.swift`](Sources/CounterWASI/CounterApp.swift) | The browser host's `App`. |
 | [`Sources/CounterWASI/main.swift`](Sources/CounterWASI/main.swift) | Browser entry point with top-level `WASIRunner.run(CounterApp.self)`. It depends only on `SwiftTUIWASI`, so no server or Dispatch stack enters the wasm. |
-| [`Tests/CounterCoreTests/`](Tests/CounterCoreTests/) | Smoke tests asserting trivial instantiability from any host target. |
+| [`Tests/CounterCoreTests/`](Tests/CounterCoreTests/) | A smoke test asserting `CounterView` stays trivially instantiable. |
 
 ## Build
 
@@ -97,10 +103,12 @@ this target.
 swift test --package-path counter
 ```
 
-The command runs the `CounterCoreTests` target. These smoke tests create the
-shared `CounterApp` and `CounterView` from each host.
+The command runs the `CounterCoreTests` target. Its smoke test creates the
+shared `CounterView`, which guards the one contract every host depends on: the
+view stays argument-free and its body builds.
 
 ## See also
 
 - [`../WebExample/`](../WebExample/): the full browser/WASI deployment shell that serves a `.wasm` like this one.
+- [`../AndroidExample/`](../AndroidExample/): the Android host, which cross-compiles `CounterCore` to a native library.
 - [SwiftTUI DocC reference](https://swifttui.sh/docs/documentation/): `SwiftTUIRuntime`, `SwiftTUIWASI`, and `SwiftUIHost` API surface.

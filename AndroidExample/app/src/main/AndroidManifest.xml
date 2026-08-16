@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application
+    android:allowBackup="false"
+    android:label="Counter"
+    android:theme="@android:style/Theme.Material.NoActionBar">
+    <!--
+      configChanges keeps the activity alive across rotation and keyboard
+      changes. SwiftTUIHostView re-measures the cell grid and tells the runtime
+      the new terminal size, so the layout follows the device without a restart.
+    -->
+    <activity
+      android:name=".MainActivity"
+      android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>
