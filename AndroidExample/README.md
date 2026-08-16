@@ -23,7 +23,7 @@ same as every other host.
 Android is a **arm64-only support tier**. The build needs four
 things:
 
-1. The Android SDK, with Platform 36.1. Android Studio installs it.
+1. The Android SDK, with Platform 37.1. Android Studio installs it.
 2. Android NDK `27.3.13750724`. The build uses it to strip the packaged
    libraries.
 3. Swift 6.3.3, through [swiftly](https://www.swift.org/swiftly/).
