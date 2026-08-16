@@ -7,6 +7,12 @@ local.properties
 .idea/
 *.iml
 
+# Written by `updateDaemonJvm`, which Android Studio can run on sync. It pins a
+# daemon toolchain by foojay download URL, so committing it would make a fresh
+# consumer clone provision a specific JDK over the network before it can build.
+# The wrapper's own JDK requirement is the contract; this file is local state.
+gradle/gradle-daemon-jvm.properties
+
 # Generated Android packages.
 *.apk
 *.aab
