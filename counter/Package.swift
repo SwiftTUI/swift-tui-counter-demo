@@ -25,6 +25,20 @@ var targets: [Target] = [
     dependencies: [
       "CounterCore",
       .product(name: "SwiftTUI", package: "swift-tui"),
+    ],
+    linkerSettings: [
+      // Windows reserves 1 MiB of main-thread stack from the PE header;
+      // SwiftTUI's resolve descent is budgeted against the 8 MiB POSIX
+      // floor, so a default-link Windows debug build degrades to the
+      // stack-lean engine profile (and, before the runtime floor check,
+      // died at launch with STATUS_STACK_OVERFLOW). A root package may
+      // carry unsafeFlags — and the WebExample/TerminalApp path dependency
+      // tolerates it — so the demo links the full-engine reserve out of
+      // the box. (swift-tui-org Windows plan, Stage 6 item 9.)
+      .unsafeFlags(
+        ["-Xlinker", "/STACK:16777216"],
+        .when(platforms: [.windows])
+      )
     ]
   ),
   // Browser host: runs inside the browser via `WASIRunner.run`. Its dependency
