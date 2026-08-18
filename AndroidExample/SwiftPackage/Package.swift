@@ -26,7 +26,7 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../counter"),
-    .package(url: "https://github.com/SwiftTUI/swift-tui.git", exact: "0.9.1"),
+    .package(url: "https://github.com/SwiftTUI/swift-tui.git", exact: "0.9.2"),
   ],
   targets: [
     .target(
