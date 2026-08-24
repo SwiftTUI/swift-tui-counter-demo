@@ -119,7 +119,7 @@ from SwiftUI, which ships as a prebuilt system framework. The trade-off:
   run time.
 
 Use debug builds (the `swift run` and `swift build` default) to iterate.
-Add `-c release` when judging performs. The browser scripts follow the same rule:
+Add `-c release` when judging performance. The browser scripts follow the same rule:
 `npm run dev` makes a debug wasm build, `npm run build` makes the release
 bundle.
 

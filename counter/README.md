@@ -27,7 +27,7 @@
 | Key | Action |
 | --- | --- |
 | `Space` / `Return` | Increment the counter |
-| `Ctrl-D` | Quit |
+| `Ctrl-C` (`Ctrl-D` on swift-tui `0.9.7` and earlier) | Quit |
 
 ## Build and Run
 

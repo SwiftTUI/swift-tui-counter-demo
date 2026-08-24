@@ -15,12 +15,12 @@ Install the APK on an `arm64-v8a` device or emulator:
 ./gradlew :app:installDebug
 ```
 
-Tap the counter button to increment it. That taps start ripples, the
+Tap the counter button to increment it. Taps start ripples, the
 same as every other host.
 
 ## Requirements
 
-Android is a **arm64-only support tier**. The build needs four
+Android is an **arm64-only support tier**. The build needs four
 things:
 
 1. The Android SDK, with Platform 37.1. Android Studio installs it.
