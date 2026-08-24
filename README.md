@@ -51,7 +51,8 @@ If your default `swift` is older than 6.3, use [swiftly](https://www.swift.org/i
 swift run --package-path counter counter
 ```
 
-Cick, or press `Space` or `Return` to increment the counter. Press `Ctrl-D` to quit.
+Click, or press `Space` or `Return`, to increment the counter. Press `Ctrl-C`
+to quit (`Ctrl-D` on swift-tui `0.9.7` and earlier).
 Incrementing the counter triggers a ripple, unless one is already animating.
 
 ### 2. Run as a native macOS window
