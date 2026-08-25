@@ -1,15 +1,34 @@
 name: Test
 
+# Lane shape (swift-tui-org plan 2026-08-25-001 Stage 4):
+#   * push / pull_request  — `linux-counter` (counter package build + tests)
+#                            and `web-counter` (the WebExample browser bundle,
+#                            now built on Linux: the wasm SDK, Binaryen, Node
+#                            and Bun are all Linux-available, so the macOS
+#                            runner it used to occupy bought nothing).
+#   * tag push (`*.*.*`)   — the above plus `macos-counter` (the SwiftUI host
+#                            target and WebExample/TerminalApp); a release
+#                            needs all three green.
+#   * nightly schedule     — `macos-counter`, guarded by lane-verdict-probe so
+#                            it exits in under a minute when nothing landed.
+#   * workflow_dispatch    — everything, on demand.
+
 on:
   pull_request:
   push:
     branches: [main]
+    tags: ["*.*.*"]
+  schedule:
+    - cron: "29 3 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# The event name keeps each trigger in its own group, so a push to main cannot
+# cancel an in-flight workflow_dispatch or scheduled run.
 concurrency:
-  group: counter-demo-test-${{ github.ref }}
+  group: counter-demo-test-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -19,6 +38,7 @@ env:
 jobs:
   linux-counter:
     name: Linux counter package
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
@@ -67,8 +87,139 @@ jobs:
         working-directory: swift-tui-counter-demo
         run: Scripts/check_counter_demo.sh --linux-only --skip-clean
 
+  web-counter:
+    name: Web counter bundle
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          path: swift-tui-counter-demo
+      # binaryen provides wasm-opt (the bundle stays unoptimized without it);
+      # libcurl is what swiftly's downloaded toolchains link against.
+      - name: Install Linux dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ca-certificates \
+            curl \
+            git \
+            libcurl4-openssl-dev \
+            python3 \
+            unzip \
+            binaryen
+      # The toolchain version tracks the pinned .swift-version. The value is
+      # validated against a strict pattern before any downstream use so
+      # attacker-controlled file contents (e.g. on a fork PR) cannot inject
+      # shell into the steps below; it is then passed via env, never
+      # interpolated directly into a run script.
+      - name: Resolve pinned Swift version
+        id: swift
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '[:space:]' < swift-tui-counter-demo/.swift-version)"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+            echo "::error::Unexpected .swift-version contents: '$version'"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Cache Swiftly toolchain
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.local/share/swiftly
+            ~/.local/bin/swiftly
+          key: ${{ runner.os }}-swiftly-${{ env.SWIFTLY_VERSION }}-${{ hashFiles('swift-tui-counter-demo/.swift-version') }}
+          restore-keys: |
+            ${{ runner.os }}-swiftly-${{ env.SWIFTLY_VERSION }}-
+      - name: Install swiftly and Swift toolchain
+        shell: bash
+        run: swift-tui-counter-demo/Scripts/install_swift_toolchain_ci.sh swift-tui-counter-demo/.swift-version
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache web build products
+        uses: actions/cache@v6
+        with:
+          path: |
+            swift-tui-counter-demo/WebExample/TerminalApp/.build
+            ~/.swiftpm
+            ~/.cache/org.swift.swiftpm
+          key: ${{ runner.os }}-counter-demo-web-swiftpm-${{ hashFiles('swift-tui-counter-demo/WebExample/TerminalApp/Package.swift', 'swift-tui-counter-demo/WebExample/TerminalApp/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-counter-demo-web-swiftpm-
+      - name: Cache Bun deps
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            swift-tui-counter-demo/node_modules
+          key: ${{ runner.os }}-counter-demo-bun-${{ hashFiles('swift-tui-counter-demo/bun.lock', 'swift-tui-counter-demo/package.json', 'swift-tui-counter-demo/WebExample/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-counter-demo-bun-
+      - name: Install the wasm32-wasi Swift SDK
+        shell: bash
+        env:
+          SWIFT_VERSION: ${{ steps.swift.outputs.version }}
+        run: |
+          set -euo pipefail
+          case "$SWIFT_VERSION" in
+            6.3.3)
+              WASM_SDK_CHECKSUM="cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7"
+              ;;
+            *)
+              echo "::error::No pinned wasm SDK checksum for Swift ${SWIFT_VERSION}"
+              exit 1
+              ;;
+          esac
+          if ! swiftly run swift sdk list | grep -q "swift-${SWIFT_VERSION}-RELEASE_wasm"; then
+            swiftly run swift sdk install \
+              "https://download.swift.org/swift-${SWIFT_VERSION}-release/wasm-sdk/swift-${SWIFT_VERSION}-RELEASE/swift-${SWIFT_VERSION}-RELEASE_wasm.artifactbundle.tar.gz" \
+              --checksum "$WASM_SDK_CHECKSUM"
+          fi
+          swiftly run swift sdk list
+      - name: Run web checks
+        shell: bash
+        working-directory: swift-tui-counter-demo
+        run: Scripts/check_counter_demo.sh --web-only --skip-clean
+
+  # Skip-if-unchanged guard for the macOS lane (plan 2026-08-25-001 §6): on a
+  # schedule, a green verdict already recorded for this exact commit means the
+  # lane exits here in under a minute. Dispatch and tag pushes always run;
+  # branch pushes and PRs never reach this job.
+  changes:
+    name: Skip macOS lane if unchanged
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      changed: ${{ steps.probe.outputs.changed }}
+      key: ${{ steps.probe.outputs.key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Probe the lane verdict
+        id: probe
+        uses: ./.github/actions/lane-verdict-probe
+        with:
+          lane: counter-demo-macos
+
   macos-counter:
     name: macOS counter + TerminalApp
+    # Off the push path (plan 2026-08-25-001 Stage 4): the Linux jobs carry
+    # the per-push signal; the Apple-only SwiftUI host target runs
+    # nightly-if-changed, at every tag (required for a release), and on demand.
+    needs: changes
+    if: needs.changes.outputs.changed == 'true'
     runs-on: macos-26
     timeout-minutes: 45
     env:
@@ -107,59 +258,17 @@ jobs:
         working-directory: swift-tui-counter-demo
         run: Scripts/check_counter_demo.sh --macos-only --skip-clean
 
-  web-counter:
-    name: Web counter bundle
-    runs-on: macos-26
-    timeout-minutes: 60
+  record-macos-verdict:
+    name: Record macOS lane verdict
+    needs: [changes, macos-counter]
+    if: needs.changes.outputs.changed == 'true' && needs.macos-counter.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Record the green verdict
+        uses: ./.github/actions/lane-verdict-record
         with:
-          path: swift-tui-counter-demo
-      - name: Cache Swiftly toolchain
-        uses: actions/cache@v6
-        with:
-          # Deliberately no restore-keys — see the macOS job note above.
-          path: ~/.swiftly
-          key: ${{ runner.os }}-swiftly-${{ env.SWIFTLY_VERSION }}-${{ hashFiles('swift-tui-counter-demo/.swift-version') }}
-      - name: Install swiftly and Swift toolchain
-        shell: bash
-        run: swift-tui-counter-demo/Scripts/install_swift_toolchain_ci.sh swift-tui-counter-demo/.swift-version
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: ${{ env.BUN_VERSION }}
-      - name: Install WebExample build dependencies
-        shell: bash
-        run: brew install binaryen
-      - name: Cache web build products
-        uses: actions/cache@v6
-        with:
-          path: |
-            swift-tui-counter-demo/WebExample/TerminalApp/.build
-            ~/.swiftpm
-            ~/Library/Caches/org.swift.swiftpm
-          key: ${{ runner.os }}-counter-demo-web-swiftpm-${{ hashFiles('swift-tui-counter-demo/WebExample/TerminalApp/Package.swift', 'swift-tui-counter-demo/WebExample/TerminalApp/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-counter-demo-web-swiftpm-
-      - name: Cache Bun deps
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.bun/install/cache
-            swift-tui-counter-demo/node_modules
-          key: ${{ runner.os }}-counter-demo-bun-${{ hashFiles('swift-tui-counter-demo/bun.lock', 'swift-tui-counter-demo/package.json', 'swift-tui-counter-demo/WebExample/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-counter-demo-bun-
-      - name: Install wasm Swift SDK
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! swiftly run swift sdk list | grep -q "swift-6.3.3-RELEASE_wasm"; then
-            swiftly run swift sdk install \
-              https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
-              --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
-          fi
-      - name: Run web checks
-        shell: bash
-        working-directory: swift-tui-counter-demo
-        run: Scripts/check_counter_demo.sh --web-only --skip-clean
+          key: ${{ needs.changes.outputs.key }}
