@@ -1,13 +1,13 @@
 {
   "name": "swift-tui-counter-demo-workspace",
   "private": true,
-  "version": "0.9.10",
+  "version": "0.9.11",
   "license": "MIT",
   "workspaces": [
     "WebExample"
   ],
   "overrides": {
-    "@swifttui/web": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.9.10/swifttui-web-0.9.10.tgz"
+    "@swifttui/web": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.9.11/swifttui-web-0.9.11.tgz"
   },
   "scripts": {
     "check": "Scripts/check_counter_demo.sh --skip-clean",
