@@ -1,7 +1,7 @@
-import { expect, test } from "bun:test";
-import { chromium, type Browser } from "playwright";
+import { chromium, expect, test, type Browser } from "@playwright/test";
 
 import { serveBuiltWebExample } from "../scripts/serve.mjs";
+import { installCounterFigureProbe } from "./counter-figure-probe.ts";
 
 declare global {
   interface Window {
@@ -21,17 +21,19 @@ const lanes = [
 ];
 
 test("counter interactions commit across runtime profiles and render modes", async () => {
+  test.setTimeout(200_000);
   const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   try {
     for (const query of lanes) {
+      console.info(`counter interaction lane: ${query || "default"}`);
       await expectCounterSequence(server.url.href, browser, query);
     }
   } finally {
     await browser.close();
     server.stop(true);
   }
-}, 200_000);
+});
 
 async function expectCounterSequence(
   baseURL: string,
@@ -48,6 +50,7 @@ async function expectCounterSequence(
     if (message.type() === "error") errors.push(message.text());
   });
 
+  await installCounterFigureProbe(page);
   await page.addInitScript(() => {
     const originalParse = JSON.parse;
     const probe = { frameCount: 0, count: undefined as number | undefined };
@@ -80,8 +83,8 @@ async function expectCounterSequence(
           for (const [index, row] of frame.deltaRows) rows[index] = row;
         }
         probe.frameCount += 1;
-        const match = rows.map(rowText).join("\n").match(/\bCount:\s*(\d+)/);
-        probe.count = match ? Number(match[1]) : probe.count;
+        const count = window.__swiftTUICounterValue?.(rows.map(rowText));
+        probe.count = count ?? probe.count;
       }
       return value;
     };
@@ -111,7 +114,7 @@ async function expectCounterSequence(
       { polling: 100, timeout: 30_000 },
     );
 
-    const increment = page.locator('[role="button"][data-focused="true"]');
+    const increment = page.getByRole("button");
     for (let expected = 1; expected <= 8; expected += 1) {
       await increment.press("Enter");
       await page.waitForFunction(

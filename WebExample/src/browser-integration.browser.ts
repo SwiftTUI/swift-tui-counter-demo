@@ -1,7 +1,7 @@
-import { expect, test } from "bun:test";
-import { chromium } from "playwright";
+import { chromium, expect, test } from "@playwright/test";
 
 import { serveBuiltWebExample } from "../scripts/serve.mjs";
+import { installCounterFigureProbe } from "./counter-figure-probe.ts";
 
 interface FrameDiagnosticRow {
   frame?: unknown;
@@ -19,6 +19,7 @@ declare global {
 const expectFrameDiagnostics = process.env.WEBEXAMPLE_EXPECT_FRAME_DIAGNOSTICS === "1";
 
 test("WebExample renders WASI surface frames into a nonblank canvas", async () => {
+  test.setTimeout(120_000);
   const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   const page = await browser.newPage({
@@ -38,6 +39,7 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
     }
   });
 
+  await installCounterFigureProbe(page);
   await page.addInitScript(() => {
     const originalParse = JSON.parse;
     let rows: WebHostSurfaceCell[][] = [];
@@ -65,6 +67,7 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
           for (const [index, row] of frame.deltaRows) rows[index] = row;
         }
         window.__swiftTUICounterText = rows.map(rowText).join("\n");
+        window.__swiftTUICounterCount = window.__swiftTUICounterValue?.(rows.map(rowText));
       }
       return value;
     };
@@ -162,8 +165,8 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
         return false;
       }
 
-      const width = Math.min(canvas.width, 240);
-      const height = Math.min(canvas.height, 180);
+      const width = canvas.width;
+      const height = canvas.height;
       const pixels = context.getImageData(0, 0, width, height).data;
       let firstPixel: string | undefined;
       let opaqueSamples = 0;
@@ -207,7 +210,7 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
       differingSamples: expect.any(Number),
     });
     await page.waitForFunction(
-      () => window.__swiftTUICounterText?.includes("Count: 0") === true,
+      () => window.__swiftTUICounterCount === 0,
       undefined,
       { polling: 100, timeout: 30_000 },
     );
@@ -254,10 +257,10 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
       canvasHeight: number;
     };
 
-    const increment = page.locator('[role="button"][data-focused="true"]');
+    const increment = page.getByRole("button");
     await increment.press("Enter");
     await page.waitForFunction(
-      () => window.__swiftTUICounterText?.includes("Count: 1") === true,
+      () => window.__swiftTUICounterCount === 1,
       undefined,
       { polling: 100, timeout: 30_000 },
     );
@@ -299,7 +302,7 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
     await browser.close();
     server.stop(true);
   }
-}, 120_000);
+});
 
 type WebHostSurfaceCell = [
   column: number,

@@ -33,7 +33,8 @@ or public release tarballs.
 
 - The build and serve scripts run on **Node 18+** (Bun can run them too). Any
   npm setup can drive the package scripts.
-- **Bun** is the test runner (`bun test`, `bun run test:browser`).
+- **Bun** runs unit tests (`bun test`). Browser tests use **Playwright Test
+  on Node 20+** (`bun run test:browser`).
 - Use **`swiftly`** Swift 6.3.3 and the `swift-6.3.3-RELEASE_wasm` SDK for the
   WASI build. The build scripts check both and print install guidance.
 

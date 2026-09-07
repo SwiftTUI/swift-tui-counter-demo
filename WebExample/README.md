@@ -98,15 +98,19 @@ explains both. The canonical build commands live in
 
 ## Test
 
-The test runner is Bun:
+Unit tests use Bun. Browser tests use Playwright Test on Node 20 or later:
 
 ```bash
 bun test                             # unit tests
 bun run test:browser                 # Playwright browser-integration specs
+bun run test:browser:built           # same suite against an existing build
 ```
 
-The browser specifications build the full bundle first, then drive Chromium
-and WebKit against the served demo.
+The full browser command builds the bundle first, then drives Chromium and
+WebKit against the served demo. Playwright Test runs one worker with no retries;
+each specification keeps its explicit browser lanes and timeout. Its CLI runs
+under Node because the combined Chromium/WebKit journey can lose the WebKit
+process and stall under Bun. Bun remains the unit-test and package runner.
 
 ## See also
 

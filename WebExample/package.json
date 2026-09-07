@@ -13,15 +13,18 @@
     "dev": "node scripts/build-terminal.mjs --configuration debug && node scripts/serve.mjs --watch",
     "start": "node scripts/serve.mjs",
     "test": "bun test",
-    "test:browser": "playwright install chromium webkit && node scripts/build-terminal.mjs && node scripts/build-web.mjs && bun test ./src/browser-integration.browser.ts --timeout 120000 && bun test ./src/frame-cadence.browser.ts --timeout 120000 && bun test ./src/interaction-emission.browser.ts --timeout 200000 && bun test ./src/raster-damage.browser.ts --timeout 120000 && bun test ./src/scroll-chaining.browser.ts --timeout 480000 && bun test ./src/webkit-journey.browser.ts --timeout 480000"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:browser": "node scripts/playwright.mjs install chromium webkit && node scripts/build-terminal.mjs && node scripts/build-web.mjs && node scripts/playwright.mjs test",
+    "test:browser:built": "node scripts/playwright.mjs test"
   },
   "dependencies": {
     "@swifttui/build": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.11.1/swifttui-build-0.11.1.tgz",
     "@swifttui/web": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.11.1/swifttui-web-0.11.1.tgz"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "@types/bun": "1.3.14",
     "esbuild": "^0.28.2",
-    "playwright": "^1.62.1"
+    "typescript": "7.0.2"
   }
 }

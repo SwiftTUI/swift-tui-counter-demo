@@ -1,7 +1,7 @@
-import { expect, test } from "bun:test";
-import { webkit } from "playwright";
+import { expect, test, webkit } from "@playwright/test";
 
 import { serveBuiltWebExample } from "../scripts/serve.mjs";
+import { installCounterFigureProbe } from "./counter-figure-probe.ts";
 
 declare global {
   interface Window {
@@ -18,6 +18,7 @@ const soakMilliseconds = Number(
 const journeyQuery = process.env.WEBEXAMPLE_WEBKIT_QUERY ?? "";
 
 test("WebExample counter survives the WebKit WASI journey", async () => {
+  test.setTimeout(soakMilliseconds + 120_000);
   const server = await serveBuiltWebExample();
   const browser = await webkit.launch();
   const page = await browser.newPage({
@@ -29,6 +30,7 @@ test("WebExample counter survives the WebKit WASI journey", async () => {
     if (message.type() === "error") runtimeErrors.push(message.text());
   });
 
+  await installCounterFigureProbe(page);
   await page.addInitScript(() => {
     const originalParse = JSON.parse;
     const probe = { frameCount: 0, count: undefined as number | undefined };
@@ -61,8 +63,8 @@ test("WebExample counter survives the WebKit WASI journey", async () => {
           for (const [index, row] of frame.deltaRows) rows[index] = row;
         }
         probe.frameCount += 1;
-        const match = rows.map(rowText).join("\n").match(/\bCount:\s*(\d+)/);
-        probe.count = match ? Number(match[1]) : probe.count;
+        const count = window.__swiftTUICounterValue?.(rows.map(rowText));
+        probe.count = count ?? probe.count;
       }
       return value;
     };
@@ -99,7 +101,7 @@ test("WebExample counter survives the WebKit WASI journey", async () => {
       { polling: 100, timeout: 60_000 },
     );
 
-    const increment = page.locator('[role="button"][data-focused="true"]');
+    const increment = page.getByRole("button");
     for (let expected = 1; expected <= 20; expected += 1) {
       await increment.press("Enter");
       await page.waitForFunction(
@@ -126,7 +128,7 @@ test("WebExample counter survives the WebKit WASI journey", async () => {
     await browser.close();
     server.stop(true);
   }
-}, soakMilliseconds + 120_000);
+});
 
 type WebHostSurfaceCell = [
   column: number,

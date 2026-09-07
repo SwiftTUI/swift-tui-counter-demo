@@ -1,7 +1,7 @@
-import { expect, test } from "bun:test";
-import { chromium } from "playwright";
+import { chromium, expect, test } from "@playwright/test";
 
 import { serveBuiltWebExample } from "../scripts/serve.mjs";
+import { installCounterFigureProbe } from "./counter-figure-probe.ts";
 
 interface DamageSample {
   hasDamage: boolean;
@@ -16,12 +16,14 @@ declare global {
 }
 
 test("Counter activation emits raster damage for the changed frame", async () => {
+  test.setTimeout(120_000);
   const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: { width: 1280, height: 900 },
   });
 
+  await installCounterFigureProbe(page);
   await page.addInitScript(() => {
     const originalParse = JSON.parse;
     const samples: DamageSample[] = [];
@@ -54,7 +56,7 @@ test("Counter activation emits raster damage for the changed frame", async () =>
         else if (frame.encoding === "delta" && Array.isArray(frame.deltaRows)) {
           for (const [index, row] of frame.deltaRows) rows[index] = row;
         }
-        const match = rows.map(rowText).join("\n").match(/\bCount:\s*(\d+)/);
+        const count = window.__swiftTUICounterValue?.(rows.map(rowText));
         samples.push({
           hasDamage:
             frame.encoding === "delta" ||
@@ -65,7 +67,7 @@ test("Counter activation emits raster damage for the changed frame", async () =>
               : Array.isArray(frame.damage?.textRows)
                 ? frame.damage.textRows.length
                 : 0,
-          count: match ? Number(match[1]) : undefined,
+          count: count,
         });
       }
       return value;
@@ -98,7 +100,7 @@ test("Counter activation emits raster damage for the changed frame", async () =>
       () => window.__swiftTUIDamageSamples?.length ?? 0,
     );
 
-    await page.locator('[role="button"][data-focused="true"]').press("Enter");
+    await page.getByRole("button").press("Enter");
     await page.waitForFunction(
       () => window.__swiftTUIDamageSamples?.some((sample) => sample.count === 1),
       undefined,
@@ -118,7 +120,7 @@ test("Counter activation emits raster damage for the changed frame", async () =>
     await browser.close();
     server.stop(true);
   }
-}, 120_000);
+});
 
 type WebHostSurfaceCell = [
   column: number,

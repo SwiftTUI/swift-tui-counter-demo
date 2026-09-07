@@ -2,7 +2,7 @@
 
 set -eu
 
-repo_root=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+repo_root=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
 swiftpm_scratch=${SWIFTTUI_COUNTER_DEMO_SWIFTPM_SCRATCH:-}
 
 skip_clean=0
@@ -22,7 +22,7 @@ Suites:
   linux  Build the counter package (debug + release) and run CounterCoreTests.
   macos  Linux coverage plus the WebExample/TerminalApp package (build + test).
          On macOS the counter build also covers the CounterSwiftUI host target.
-  web    Install the workspace (Bun when available, npm otherwise) and build
+  web    Install the workspace, run Bun unit tests, and build
          the WebExample browser bundle (requires the swift-6.3.3-RELEASE_wasm
          SDK, Node, and Binaryen).
 
@@ -94,13 +94,9 @@ require_command() {
 
 require_command swiftly
 if run_web_suite; then
-  # The web build scripts run on Node; Bun is optional and preferred for the
-  # workspace install when present.
+  # The build scripts run on Node; Bun also runs the web contract tests.
   require_command node
-  if ! command -v bun >/dev/null 2>&1 && ! command -v npm >/dev/null 2>&1; then
-    >&2 echo "The web suite needs bun or npm to install the workspace."
-    exit 1
-  fi
+  require_command bun
 fi
 
 run_swift() {
@@ -193,6 +189,16 @@ run_web_checks() {
         npm install --no-fund --no-audit
     fi
   fi
+
+  run_step \
+    "Typecheck WebExample" \
+    "$repo_root/WebExample" \
+    bun run typecheck
+
+  run_step \
+    "Test WebExample unit contracts" \
+    "$repo_root/WebExample" \
+    bun test
 
   run_step \
     "Build WebExample web demo" \

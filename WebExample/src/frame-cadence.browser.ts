@@ -1,7 +1,7 @@
-import { expect, test } from "bun:test";
-import { chromium } from "playwright";
+import { chromium, expect, test } from "@playwright/test";
 
 import { serveBuiltWebExample } from "../scripts/serve.mjs";
+import { installCounterFigureProbe } from "./counter-figure-probe.ts";
 
 declare global {
   interface Window {
@@ -15,12 +15,14 @@ interface CounterFrame {
 }
 
 test("WebExample commits every authored counter activation in order", async () => {
+  test.setTimeout(120_000);
   const server = await serveBuiltWebExample();
   const browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: { width: 1280, height: 900 },
   });
 
+  await installCounterFigureProbe(page);
   await page.addInitScript(() => {
     const originalParse = JSON.parse;
     const samples: CounterFrame[] = [];
@@ -52,11 +54,11 @@ test("WebExample commits every authored counter activation in order", async () =
         else if (frame.encoding === "delta" && Array.isArray(frame.deltaRows)) {
           for (const [index, row] of frame.deltaRows) rows[index] = row;
         }
-        const match = rows.map(rowText).join("\n").match(/\bCount:\s*(\d+)/);
-        if (match) {
+        const count = window.__swiftTUICounterValue?.(rows.map(rowText));
+        if (count !== undefined) {
           samples.push({
             timestamp: performance.now(),
-            count: Number(match[1]),
+            count: count,
           });
         }
       }
@@ -87,7 +89,7 @@ test("WebExample commits every authored counter activation in order", async () =
       { polling: 100, timeout: 30_000 },
     );
 
-    const increment = page.locator('[role="button"][data-focused="true"]');
+    const increment = page.getByRole("button");
     for (let expected = 1; expected <= 6; expected += 1) {
       await increment.press("Enter");
       await page.waitForFunction(
@@ -107,7 +109,7 @@ test("WebExample commits every authored counter activation in order", async () =
     await browser.close();
     server.stop(true);
   }
-}, 120_000);
+});
 
 type WebHostSurfaceCell = [
   column: number,

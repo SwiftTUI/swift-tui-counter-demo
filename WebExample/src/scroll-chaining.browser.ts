@@ -1,5 +1,4 @@
-import { expect, test } from "bun:test";
-import { chromium, webkit } from "playwright";
+import { chromium, expect, test, webkit } from "@playwright/test";
 
 import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
@@ -26,6 +25,7 @@ const scenarios: Array<{
 ];
 
 test("embedded WebHost wheels chain to the outer page only without inner headroom", async () => {
+  test.setTimeout(480_000);
   const server = await serveBuiltWebExample({ includeScrollChainHarness: true });
 
   try {
@@ -136,4 +136,4 @@ test("embedded WebHost wheels chain to the outer page only without inner headroo
   } finally {
     server.stop(true);
   }
-}, 480_000);
+});

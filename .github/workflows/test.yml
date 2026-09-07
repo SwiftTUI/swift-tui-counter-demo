@@ -202,10 +202,20 @@ jobs:
               --checksum "$WASM_SDK_CHECKSUM"
           fi
           swiftly run swift sdk list
+      - name: Set up Node for browser tests
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
       - name: Run web checks
         shell: bash
         working-directory: swift-tui-counter-demo
         run: Scripts/check_counter_demo.sh --web-only --skip-clean
+      - name: Install Chromium for the browser contract
+        working-directory: swift-tui-counter-demo/WebExample
+        run: node scripts/playwright.mjs install --with-deps chromium
+      - name: Verify browser startup, increment, and resize
+        working-directory: swift-tui-counter-demo/WebExample
+        run: bun run test:browser:built -- src/browser-integration.browser.ts
 
   # Skip-if-unchanged guard for the macOS lane (plan 2026-08-25-001 §6): on a
   # schedule, a green verdict already recorded for this exact commit means the

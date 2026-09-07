@@ -134,12 +134,18 @@ bundle.
 ## Checks
 
 ```bash
-npm run check          # full gate: counter build+test, TerminalApp build+test, web bundle
+npm run check          # full gate: counter + TerminalApp tests, strict web types, unit tests and bundle
 npm run check:linux    # counter package only (what Linux CI runs)
-npm run check:web      # browser bundle only (wasm SDK required)
+npm run check:web      # strict web types, unit tests + browser bundle (Bun and wasm SDK required)
 ```
 
-The check scripts prefer Bun when it is installed and fall back to npm.
+The web gate requires Bun for unit tests; build scripts support Node 18+ and
+Playwright browser tests require Node 20+. Web CI selects Node 24, installs
+Chromium, and runs the built application's
+startup, increment, canvas, resize, and runtime-error journey. Run
+`bun run --cwd WebExample test:browser` for the complete Chromium/WebKit suite,
+or `test:browser:built` against an existing build. Both invoke Playwright Test
+under Node with one worker and no retries.
 
 ## See also
 
