@@ -1,6 +1,6 @@
 {
   "name": "web-example",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -18,8 +18,8 @@
     "test:browser:built": "node scripts/playwright.mjs test"
   },
   "dependencies": {
-    "@swifttui/build": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.12.1/swifttui-build-0.12.1.tgz",
-    "@swifttui/web": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.12.1/swifttui-web-0.12.1.tgz"
+    "@swifttui/build": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.13.0/swifttui-build-0.13.0.tgz",
+    "@swifttui/web": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.13.0/swifttui-web-0.13.0.tgz"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
