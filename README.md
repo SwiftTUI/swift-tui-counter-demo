@@ -52,8 +52,8 @@ swift run --package-path counter counter
 ```
 
 Click, or press `Space` or `Return`, to increment the counter. Press `Ctrl-C`
-to quit (`Ctrl-D` on swift-tui `0.9.7` and earlier).
-Incrementing the counter triggers a ripple, unless one is already animating.
+to quit. Each increment starts an independent ripple. Rapid increments can
+overlap; each ripple owns its animation state and removes itself on completion.
 
 ### 2. Run as a native macOS window
 
