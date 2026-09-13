@@ -9,10 +9,8 @@ public struct CounterView: View {
   // `\.terminalSize` reports the scene size in character cells (columns x rows).
   @Environment(\.terminalSize) private var terminalSize
   @State private var count = 0
-
-  // The identity of the ripple that is currently on screen. `nil` means no
-  // ripple is active.
-  @State private var activeRippleID: Int? = nil
+  @State private var lastRipple = 0
+  @State private var rippleIDs: [Int] = []
 
   public var body: some View {
     VStack(spacing: 1) {
@@ -25,21 +23,16 @@ public struct CounterView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .onChange(of: count) {
-      // Start a ripple only when none is active.
-      if activeRippleID == nil {
-        activeRippleID = count
-      }
+      rippleIDs.append(lastRipple)
+      lastRipple += 1
     }
     .background {
-      if let rippleID = activeRippleID {
+      ForEach(rippleIDs, id: \.self) { rippleID in
         RippleLayer(reach: reach) {
           // This completion runs when the ripple animation ends.
           // We clear the finished ripple so new ones can start.
-          if activeRippleID == rippleID {
-            activeRippleID = nil
-          }
+          rippleIDs.removeAll(where: { $0 == rippleID})
         }
-        .id(rippleID)
       }
     }
   }
