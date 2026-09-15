@@ -85,7 +85,7 @@ private struct RippleLayer: View {
       ]),
       center: .center,
       startRadius: innerEdge,
-      endRadius: innerEdge + 5
+      endRadius: innerEdge + 15
     )
   }
 }
