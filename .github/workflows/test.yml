@@ -33,7 +33,7 @@ concurrency:
 
 env:
   BUN_VERSION: "1.3.14"
-  SWIFTLY_VERSION: "1.1.3"
+  SWIFTLY_VERSION: "1.1.4"
 
 jobs:
   linux-counter:
@@ -188,8 +188,8 @@ jobs:
         run: |
           set -euo pipefail
           case "$SWIFT_VERSION" in
-            6.3.3)
-              WASM_SDK_CHECKSUM="cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7"
+            6.4.0)
+              WASM_SDK_CHECKSUM="f07b7be3c586d92d7a07051fc6d303b87ebea67eadc40640ba59d5a8b79aa86d"
               ;;
             *)
               echo "::error::No pinned wasm SDK checksum for Swift ${SWIFT_VERSION}"

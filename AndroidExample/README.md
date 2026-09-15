@@ -26,16 +26,16 @@ things:
 1. The Android SDK, with Platform 37.1. Android Studio installs it.
 2. Android NDK `27.3.13750724`. The build uses it to strip the packaged
    libraries.
-3. Swift 6.3.3, through [swiftly](https://www.swift.org/swiftly/).
-4. The `swift-6.3.3-RELEASE_android` Swift SDK bundle, to cross-compile the
+3. Swift 6.4.0, through [swiftly](https://www.swift.org/swiftly/).
+4. The `swift-6.4.0-RELEASE_android` Swift SDK bundle, to cross-compile the
    app.
 
 Materialize the Swift Android SDK's `ndk-sysroot` one time after you install
 the bundle:
 
 ```bash
-ANDROID_NDK_HOME="$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d" \
-  "$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle/swift-android/scripts/setup-android-sdk.sh"
+ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/27.3.13750724" \
+  "$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.0-RELEASE_android.artifactbundle/swift-android/scripts/setup-android-sdk.sh"
 ```
 
 If the toolchains are not on the default paths, name them on the command line:
@@ -43,8 +43,8 @@ If the toolchains are not on the default paths, name them on the command line:
 ```bash
 JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 ANDROID_HOME="$HOME/Library/Android/sdk" \
-ANDROID_NDK_HOME="$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.3-RELEASE_android.artifactbundle/swift-android/android-ndk-r27d" \
-SWIFT_ANDROID_SDK_BUNDLE="$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.3.3-RELEASE_android.artifactbundle" \
+ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/27.3.13750724" \
+SWIFT_ANDROID_SDK_BUNDLE="$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.0-RELEASE_android.artifactbundle" \
   ./gradlew :app:assembleDebug
 ```
 

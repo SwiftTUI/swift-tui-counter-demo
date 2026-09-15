@@ -31,8 +31,8 @@
 
 ## Build and Run
 
-Use [swiftly](https://www.swift.org/install) to install Swift 6.3 and the SDKs described here.  
-An Xcode Swift 6.3+ toolchain will only be able to build the terminal and SwiftUI examples.
+Use [swiftly](https://www.swift.org/install) to install Swift 6.4 and the SDKs described here.
+An Xcode Swift 6.4+ toolchain will only be able to build the terminal and SwiftUI examples.
 
 ### Terminal
 
@@ -60,7 +60,7 @@ You can also build the **static WASI bundle** for the browser host directly.
 ```bash
 swiftly run swift build \
   --package-path counter \
-  --swift-sdk swift-6.3.3-RELEASE_wasm \
+  --swift-sdk swift-6.4.0-RELEASE_wasm \
   -c release \
   -Xswiftc -Osize \
   -Xswiftc -Xfrontend -Xswiftc -disable-llvm-merge-functions-pass \

@@ -24,12 +24,12 @@ Each host declares its own `App` and connects it to the platform's infrastructur
 
 ## Requirements
 
-- Swift 6.3 or later, for every host. This is best installed with
+- Swift 6.4 or later, for every host. This is best installed with
   [swiftly](https://www.swift.org/install). This repository pins its
   toolchain in `.swift-version`, and swiftly reads that file.
 - The native SwiftUI window requires macOS 15 or later.
 - The browser host requires Node.js 18 or later, a JavaScript package
-  manager like npm, and `swift-6.3.3-RELEASE_wasm` installed via [swiftly](https://www.swift.org/install).
+  manager like npm, and `swift-6.4.0-RELEASE_wasm` installed via [swiftly](https://www.swift.org/install).
 - The Android host requires the Android SDK, an NDK, and the Swift Android SDK installed via [swiftly](https://www.swift.org/install).
   
 ## Quick start
@@ -40,7 +40,7 @@ cd swift-tui-counter-demo
 swift run --package-path counter counter
 ```
 
-If your default `swift` is older than 6.3, use [swiftly](https://www.swift.org/install) and the `swiftly run` commands.
+If your default `swift` is older than 6.4, use [swiftly](https://www.swift.org/install) and the `swiftly run` commands.
 `swiftly run swift run --package-path counter counter`.
 
 ## Build and run each host
@@ -74,7 +74,7 @@ mixed SwiftTUI + SwiftUI files need.
 The browser host compiles the app to WebAssembly and mounts it on a canvas.
 It has two extra requirements:
 
-1. The `swift-6.3.3-RELEASE_wasm` Swift SDK. If the SDK is missing, the build
+1. The `swift-6.4.0-RELEASE_wasm` Swift SDK. If the SDK is missing, the build
    stops and prints the exact install command.
 2. [Binaryen](https://github.com/WebAssembly/binaryen) (`wasm-opt`), optional
    but recommended for wasm binary optimization. (The <https://SwiftTUI.sh> website also
@@ -104,7 +104,7 @@ device or emulator. A Gradle plugin cross-compiles the same scene to a native
 library, and a Compose `SwiftTUIHostView` renders it.
 
 This host needs the Android SDK, NDK `27.3.13750724`, and the
-`swift-6.3.3-RELEASE_android` Swift SDK. See
+`swift-6.4.0-RELEASE_android` Swift SDK. See
 [`AndroidExample/README.md`](AndroidExample/README.md) for the install steps
 and the four files that make up the integration.
 

@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 6.4
 
 import PackageDescription
 
@@ -26,7 +26,7 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../counter"),
-    .package(url: "https://github.com/SwiftTUI/swift-tui.git", exact: "0.13.3"),
+    .package(url: "https://github.com/SwiftTUI/swift-tui.git", exact: "0.13.4"),
   ],
   targets: [
     .target(

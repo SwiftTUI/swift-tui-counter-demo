@@ -23,7 +23,7 @@ Suites:
   macos  Linux coverage plus the WebExample/TerminalApp package (build + test).
          On macOS the counter build also covers the CounterSwiftUI host target.
   web    Install the workspace, run Bun unit tests, and build
-         the WebExample browser bundle (requires the swift-6.3.3-RELEASE_wasm
+         the WebExample browser bundle (requires the swift-6.4.0-RELEASE_wasm
          SDK, Node, and Binaryen).
 
 Set SWIFTTUI_COUNTER_DEMO_SWIFTPM_SCRATCH to reuse one sequential SwiftPM

@@ -35,7 +35,7 @@ or public release tarballs.
   npm setup can drive the package scripts.
 - **Bun** runs unit tests (`bun test`). Browser tests use **Playwright Test
   on Node 20+** (`bun run test:browser`).
-- Use **`swiftly`** Swift 6.3.3 and the `swift-6.3.3-RELEASE_wasm` SDK for the
+- Use **`swiftly`** Swift 6.4.0 and the `swift-6.4.0-RELEASE_wasm` SDK for the
   WASI build. The build scripts check both and print install guidance.
 
 ## Commands

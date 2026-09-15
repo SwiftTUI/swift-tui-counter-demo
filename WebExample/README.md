@@ -7,7 +7,7 @@ WebAssembly. Then `@swifttui/web` mounts the app on a canvas.
 ## Requirements
 
 - Node.js 18 or later. Any npm setup works; Bun also works.
-- [swiftly](https://www.swift.org/swiftly/) with the `swift-6.3.3-RELEASE_wasm`
+- [swiftly](https://www.swift.org/swiftly/) with the `swift-6.4.0-RELEASE_wasm`
   Swift SDK. If either is missing, the build stops and prints the install
   command.
 - [Binaryen](https://github.com/WebAssembly/binaryen) (`wasm-opt`), optional.
