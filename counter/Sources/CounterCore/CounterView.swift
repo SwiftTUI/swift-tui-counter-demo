@@ -57,6 +57,7 @@ private struct RippleLayer: View {
   var body: some View {
     Rectangle()
       .fill(ripple)
+      .blendMode(.screen)
       // `.task` starts async work when the view mounts, exactly as in
       // SwiftUI. `withAnimation(_:completion:)` also matches SwiftUI, with
       // one divergence: SwiftTUI durations are `Duration` values
