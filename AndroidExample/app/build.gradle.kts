@@ -17,7 +17,7 @@ android {
   }
 
   // Needed to strip the packaged Swift `.so` files.
-  ndkVersion = "27.3.13750724"
+  ndkVersion = "30.0.16248370"
 
   defaultConfig {
     applicationId = "sh.swifttui.counter"

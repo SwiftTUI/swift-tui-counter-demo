@@ -103,7 +103,7 @@ The command builds the app for `arm64-v8a` and installs it on a connected
 device or emulator. A Gradle plugin cross-compiles the same scene to a native
 library, and a Compose `SwiftTUIHostView` renders it.
 
-This host needs the Android SDK, NDK `27.3.13750724`, and the
+This host needs the Android SDK, NDK `30.0.16248370`, and the
 `swift-6.4.0-RELEASE_android` Swift SDK. See
 [`AndroidExample/README.md`](AndroidExample/README.md) for the install steps
 and the four files that make up the integration.

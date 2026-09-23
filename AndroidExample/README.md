@@ -24,7 +24,7 @@ Android is an **arm64-only support tier**. The build needs four
 things:
 
 1. The Android SDK, with Platform 37.1. Android Studio installs it.
-2. Android NDK `27.3.13750724`. The build uses it to strip the packaged
+2. Android NDK `30.0.16248370`. The build uses it to strip the packaged
    libraries.
 3. Swift 6.4.0, through [swiftly](https://www.swift.org/swiftly/).
 4. The `swift-6.4.0-RELEASE_android` Swift SDK bundle, to cross-compile the
@@ -34,7 +34,7 @@ Materialize the Swift Android SDK's `ndk-sysroot` one time after you install
 the bundle:
 
 ```bash
-ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/27.3.13750724" \
+ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/30.0.16248370" \
   "$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.0-RELEASE_android.artifactbundle/swift-android/scripts/setup-android-sdk.sh"
 ```
 
@@ -43,7 +43,7 @@ If the toolchains are not on the default paths, name them on the command line:
 ```bash
 JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 ANDROID_HOME="$HOME/Library/Android/sdk" \
-ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/27.3.13750724" \
+ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/30.0.16248370" \
 SWIFT_ANDROID_SDK_BUNDLE="$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.0-RELEASE_android.artifactbundle" \
   ./gradlew :app:assembleDebug
 ```
