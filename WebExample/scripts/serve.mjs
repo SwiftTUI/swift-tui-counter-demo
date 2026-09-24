@@ -203,8 +203,9 @@ if (isMainScript) {
   if (watch) {
     step("Watch the front-end sources");
     const esbuild = await import("esbuild");
-    const { bundleOptionSets, writeIndexHtml } = await import("./build-web.mjs");
+    const { bundleOptionSets, prepareDomFontAssets, writeIndexHtml } = await import("./build-web.mjs");
     await writeIndexHtml({ renderer });
+    await prepareDomFontAssets();
     for (const options of bundleOptionSets({ dev: true })) {
       const context = await esbuild.context(options);
       await context.watch();

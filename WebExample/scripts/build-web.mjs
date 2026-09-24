@@ -83,6 +83,14 @@ export async function writeIndexHtml({ renderer = "canvas" } = {}) {
   await writeFile(join(webDist, "dom.html"), pageFor("dom"));
 }
 
+/** Keep production and watch-mode assets aligned across builder versions. */
+export async function prepareDomFontAssets() {
+  // The released 0.14.0 builder predates these assets and remains supported.
+  if (typeof SwiftTUIBuild.copyDomFontAssets === "function") {
+    await SwiftTUIBuild.copyDomFontAssets(terminalAppDist);
+  }
+}
+
 /**
  * Copy dist/ and TerminalApp/dist/ into pages-dist/, the layout the website
  * repository deploys.
@@ -128,11 +136,7 @@ if (isMainScript) {
     await esbuild.build(options);
   }
   await writeIndexHtml({ renderer });
-  // New runtime packages ship the DOM font profile with the WASM assets.
-  // The released 0.14.0 builder predates these assets and remains supported.
-  if (typeof SwiftTUIBuild.copyDomFontAssets === "function") {
-    await SwiftTUIBuild.copyDomFontAssets(terminalAppDist);
-  }
+  await prepareDomFontAssets();
   note(`dist/: index.html (${renderer}), dom.html, index.js, index.css, wasm-scene-worker.js`);
 
   step("Assemble pages-dist/");

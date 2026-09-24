@@ -101,7 +101,8 @@ This package has three cooperating parts:
   builder provides `copyDomFontAssets`. The composed site artifact retains
   those same-origin assets. The released 0.14.0 builder has no packaged font
   profile and remains supported.
-  `serve.mjs` serves the result with the isolation headers.
+  `serve.mjs` serves the result with the isolation headers; watch mode also
+  copies the font profile when available.
 - **`src/`**: the browser front end that mounts `WebHost` with the manifest
   and wasm file.
 
