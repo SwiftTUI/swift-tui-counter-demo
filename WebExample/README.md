@@ -2,7 +2,7 @@
 
 This example is the reference embedding pattern for a SwiftTUI `App` in the
 browser. It does not use a terminal emulator. The build compiles the app to
-WebAssembly. Then `@swifttui/web` mounts the app on a canvas.
+WebAssembly. Then `@swifttui/web` mounts the app with the Canvas or DOM renderer.
 
 ## Requirements
 
@@ -10,8 +10,10 @@ WebAssembly. Then `@swifttui/web` mounts the app on a canvas.
 - [swiftly](https://www.swift.org/swiftly/) with the `swift-6.4.0-RELEASE_wasm`
   Swift SDK. If either is missing, the build stops and prints the install
   command.
-- [Binaryen](https://github.com/WebAssembly/binaryen) (`wasm-opt`), optional.
-  Without it the build continues and the wasm binary stays larger.
+- [Binaryen](https://github.com/WebAssembly/binaryen) (`wasm-opt`) on `PATH`.
+  The counter's release WASM needs this optimization step to stay within
+  browser function-signature limits; the builder's unoptimized fallback can
+  compile successfully but fail to load in a browser.
 
 ## Run
 
@@ -21,6 +23,21 @@ npm run dev        # in WebExample/
 ```
 
 Then open <http://localhost:3000>.
+
+For the DOM-rendered variant, run `npm run dev:dom`. The same counter and WASM
+artifact are presented as selectable browser text. Hold Alt/Option and drag to
+select text while the application is interactive.
+
+**The DOM renderer is experimental.** Canvas remains the default. Native find
+across individual cells is limited in Chromium; browser/AT, mobile and
+performance qualification are incomplete. The demo is an evaluation surface,
+not a production-conformance claim. See the runtime's
+[DOM renderer documentation](https://github.com/SwiftTUI/swift-tui-web/tree/main/packages/web#renderers)
+for the full behavior and support boundary. Features documented at runtime HEAD
+can exceed those in this example's tagged 0.14.0 dependencies.
+In 0.14.0, the semantic sidecar's bounds can lag the visible DOM layout after
+resize. Use the visible button for pointer interaction; keyboard activation
+also works. The current runtime's correlated geometry addresses that boundary.
 
 `dev` builds the Swift WASI artifacts first: `TerminalApp/dist/scene-manifest.json`
 and `TerminalApp/dist/assets/app.wasm`. This step is slow on the first run;
@@ -93,6 +110,31 @@ npm run build      # dist/ (web bundle) + pages-dist/ (web bundle + TerminalApp/
 npm start          # serve a production build on http://localhost:3000
 ```
 
+To make DOM rendering the default page:
+
+```bash
+npm run build:dom
+npm start
+```
+
+Both build modes also produce `dom.html`, so an ordinary `npm run build` serves
+the Canvas counter at `/` and the DOM counter at `/dom.html`. They share one
+JavaScript bundle, worker, scene manifest and WASM binary. `pages-dist/` includes
+both pages for static deployment; a renderer choice does not rebuild Swift
+differently.
+
+When the Swift artifact is already built, `npm run build:web:dom` repackages
+the default page as DOM without rebuilding WASM. The equivalent script flag is
+`node scripts/build-web.mjs --renderer=dom`; `--renderer=canvas` selects Canvas.
+Watch mode accepts the same flag. From the repository root, use
+`npm run build:webexample:dom` for a complete release DOM build.
+
+The tagged 0.14.0 runtime supports this DOM variant using system fonts. When
+the installed runtime and builder provide packaged DOM fonts, the build copies
+them and the DOM mount loads them from the same origin. The readiness signal
+waits for visible committed DOM rows in DOM mode and painted pixels in Canvas
+mode. Browser-native find and selection follow the installed runtime's limits.
+
 The website repository deploys `pages-dist/` under `/webexample/`. The public
 site uses it as the live demo in an iframe.
 
@@ -111,7 +153,8 @@ bun run test:browser:built           # same suite against an existing build
 ```
 
 The full browser command builds the bundle first, then drives Chromium and
-WebKit against the served demo. Playwright Test runs one worker with no retries;
+WebKit against the served demo, including `/dom.html` startup, increment input,
+resize and selectable text. Playwright Test runs one worker with no retries;
 each specification keeps its explicit browser lanes and timeout. Its CLI runs
 under Node because the combined Chromium/WebKit journey can lose the WebKit
 process and stall under Bun. Bun remains the unit-test and package runner.

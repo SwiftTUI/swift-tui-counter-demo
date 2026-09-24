@@ -7,7 +7,7 @@ concise. [`README.md`](README.md) is the full reference.
 
 This package contains the **reference embedding pattern** for SwiftTUI in the
 browser. The build compiles a real SwiftTUI `App` for WASI. `@swifttui/web`
-mounts the app on a canvas. This package has **no terminal emulator
+mounts the app with the Canvas or DOM renderer. This package has **no terminal emulator
 dependency**. The public website uses this package for the live demo. Keep the
 package small and focused on the embedding contract.
 
@@ -44,6 +44,8 @@ or public release tarballs.
 npm install            # once, in the repository root
 npm run dev            # debug wasm build, then serve with front-end watch
 npm run build          # dist/ (web) + pages-dist/ (web + TerminalApp/dist)
+npm run build:dom      # same artifacts with DOM as the default page
+npm run dev:dom        # debug WASM + DOM front-end watch
 npm start              # serve a production build
 bun test               # unit tests
 bun run test:browser   # Playwright browser-integration specs (*.browser.ts)

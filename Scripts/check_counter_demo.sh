@@ -206,6 +206,11 @@ run_web_checks() {
     node scripts/build-terminal.mjs
 
   run_step \
+    "Bundle WebExample DOM demo" \
+    "$repo_root/WebExample" \
+    node scripts/build-web.mjs --renderer=dom
+
+  run_step \
     "Bundle WebExample web demo" \
     "$repo_root/WebExample" \
     node scripts/build-web.mjs

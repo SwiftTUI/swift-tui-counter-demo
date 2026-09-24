@@ -14,6 +14,7 @@ import {
   type WebHostAppController,
   type WebHostSceneRuntimeOptions,
 } from "@swifttui/web";
+import * as WebHost from "@swifttui/web";
 import {
   createWasmSceneRuntimeFactory,
   type WasmSceneRuntimeHandle,
@@ -33,6 +34,7 @@ const backtabSequence = new TextEncoder().encode("[Z");
 const isMarketingEmbed =
   new URLSearchParams(window.location.search).get("embed") === "marketing";
 const activeStyle = isMarketingEmbed ? marketingStyle : defaultStyle;
+const renderer = rootEl().dataset.renderer === "dom" ? "dom" : "canvas";
 
 document.documentElement.classList.toggle("is-marketing-embed", isMarketingEmbed);
 
@@ -159,7 +161,9 @@ async function bootstrap(): Promise<void> {
               terminalLabel,
               el("span", {
                 class: "terminal-caption",
-                text: "The same CounterView, hosted in the browser",
+                text: renderer === "dom"
+                  ? "Experimental DOM renderer"
+                  : "The same CounterView, hosted in the browser",
               }),
             ],
           }),
@@ -217,7 +221,7 @@ async function bootstrap(): Promise<void> {
 
 // The integration point. The runtime factory loads `app.wasm` (in a worker
 // when the browser allows it); `createWebHostApp` reads the scene manifest,
-// mounts a canvas on `mount`, and connects input and resize events.
+// mounts the selected presenter, and connects input and resize events.
 async function createController(
   mount: HTMLElement,
   onSceneResize: (event: WasmSceneResizeEvent) => void,
@@ -230,10 +234,19 @@ async function createController(
     executionMode: executionModeFromQuery(),
   });
 
+  // Released 0.14.0 supports DOM rendering with system fonts. Newer packages
+  // provide a packaged font profile, copied alongside the manifest by the build.
+  const domFontAssetPath: unknown = Reflect.get(WebHost, "DOM_FONT_ASSET_PATH");
+  const packagedFonts = renderer === "dom" && typeof domFontAssetPath === "string"
+    ? { domFont: { assetBase: new URL(domFontAssetPath, terminalAppManifestUrl) } }
+    : {};
+
   return await createWebHostApp({
+    ...packagedFonts,
     mount,
+    renderer,
     manifestUrl: terminalAppManifestUrl,
-    style: activeStyle,
+    style: packagedFonts.domFont ? { ...activeStyle, fontFamily: undefined } : activeStyle,
     initialSceneId: "counter",
     environment: {
       SWIFTTUI_APP_NAME: "SwiftTUI Counter",
@@ -253,6 +266,15 @@ function waitForCommittedFrame(
 
   return new Promise((resolve, reject) => {
     const inspect = () => {
+      if (renderer === "dom") {
+        const surface = terminalHost.querySelector<HTMLElement>(".webhost-scene__surface--dom");
+        if (surface && surface.getBoundingClientRect().height > 0
+          && Array.from(surface.querySelectorAll(".webhost-scene__surface-row"))
+            .some((row) => row.textContent?.trim())) {
+          resolve();
+          return;
+        }
+      }
       const canvas = terminalHost.querySelector<HTMLCanvasElement>(
         "canvas.webhost-scene__surface",
       );

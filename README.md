@@ -89,6 +89,11 @@ npm run dev
 Then open <http://localhost:3000>. The first build is slow: the WebAssembly
 compile can take several minutes.
 
+Use `npm run dev:dom` in `WebExample/` for the **experimental** DOM-rendered counter. For a
+release build, run `npm run build:dom` and `npm start` there, or
+`npm run build:webexample:dom` from the repository root. Every web build also
+includes a `/dom.html` variant sharing the same WASM artifact.
+
 See [`WebExample/README.md`](WebExample/README.md) for the embedding pattern
 and the production build.
 
@@ -128,7 +133,7 @@ bundle.
 | Path | Role |
 | --- | --- |
 | [`counter/`](counter) | The core SwiftPM package: `CounterCore` (the shared view), `counter` (terminal executable), `CounterSwiftUI` (native macOS window), `CounterWASI` (browser/WASI executable) |
-| [`WebExample/`](WebExample) | The browser deployment shell: build scripts that compile the app for WASI and a static server that mounts it on a canvas via `@swifttui/web`. The public website builds its live demo from this directory |
+| [`WebExample/`](WebExample) | The browser deployment shell: build scripts that compile the app for WASI and a static server with Canvas and DOM variants via `@swifttui/web`. The public website builds its live demo from this directory |
 | [`AndroidExample/`](AndroidExample) | The Android app: a Gradle project plus a small SwiftPM package that exposes `CounterCore` to the Android host as a native library |
 
 ## Checks

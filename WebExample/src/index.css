@@ -146,14 +146,28 @@ a:focus-visible {
   display: none !important;
 }
 
+/* With the scene header hidden, the terminal owns the single grid track. */
+.terminal-host .webhost-scene__terminal {
+  grid-row: 1 !important;
+}
+
 .terminal-host .webhost-scene__terminal,
 .terminal-host .webhost-scene__terminal canvas {
   max-width: 100%;
   max-height: 100%;
   cursor: default !important;
+}
+
+#root[data-renderer="canvas"] .webhost-scene__terminal,
+#root[data-renderer="canvas"] .webhost-scene__terminal canvas {
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+#root[data-renderer="dom"] .webhost-scene__surface--dom {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .is-marketing-embed .terminal-shell {

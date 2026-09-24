@@ -1,13 +1,14 @@
 // Bundles the browser front end with esbuild and assembles the deployable
 // directories:
 //
-//   dist/        the web bundle: index.html, index.js, index.css, and the
+//   dist/        the web bundle: index.html, dom.html, index.js, index.css, and the
 //                wasm scene worker
 //   pages-dist/  dist/ plus TerminalApp/dist/ — the exact layout the public
 //                website deploys under /webexample/
 //
 // The script runs on Node 18+ or Bun; any npm setup can invoke it. Pass
-// --dev to skip minification. Run scripts/build-terminal.mjs first; this
+// --dev to skip minification, or --renderer=dom for a DOM default page.
+// Run scripts/build-terminal.mjs first; this
 // script only packages what that build produced.
 
 import { existsSync } from "node:fs";
@@ -16,6 +17,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import * as esbuild from "esbuild";
 import * as SwiftTUIBuild from "@swifttui/build";
+import { rendererFromArgs } from "./renderer.mjs";
 import { fail, note, step } from "./term-style.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
@@ -55,10 +57,10 @@ export function bundleOptionSets({ dev = false } = {}) {
 }
 
 /**
- * Write dist/index.html from src/index.html, pointed at the bundled assets
- * instead of the TypeScript sources.
+ * Write the default and DOM pages from src/index.html, pointed at the bundled
+ * assets instead of the TypeScript sources.
  */
-export async function writeIndexHtml() {
+export async function writeIndexHtml({ renderer = "canvas" } = {}) {
   const source = await readFile(join(sourceDirectory, "index.html"), "utf8");
   const withScript = mustReplace(
     source,
@@ -71,7 +73,14 @@ export async function writeIndexHtml() {
     '  <link rel="stylesheet" href="./index.css" />\n  </head>',
   );
   await mkdir(webDist, { recursive: true });
-  await writeFile(join(webDist, "index.html"), withStylesheet);
+  const pageFor = (mode) => mustReplace(
+    withStylesheet,
+    '<div id="root"></div>',
+    `<div id="root" data-renderer="${mode}"></div>`,
+  );
+  await writeFile(join(webDist, "index.html"), pageFor(renderer));
+  // Both pages use the same JS, worker, manifest and WASM artifact.
+  await writeFile(join(webDist, "dom.html"), pageFor("dom"));
 }
 
 /**
@@ -110,6 +119,7 @@ const isMainScript =
 
 if (isMainScript) {
   const dev = process.argv.includes("--dev");
+  const renderer = rendererFromArgs(process.argv.slice(2));
   const startedAt = Date.now();
 
   step(`Bundle the front end (${dev ? "development" : "release"})`);
@@ -117,13 +127,13 @@ if (isMainScript) {
   for (const options of bundleOptionSets({ dev })) {
     await esbuild.build(options);
   }
-  await writeIndexHtml();
+  await writeIndexHtml({ renderer });
   // New runtime packages ship the DOM font profile with the WASM assets.
   // The released 0.14.0 builder predates these assets and remains supported.
   if (typeof SwiftTUIBuild.copyDomFontAssets === "function") {
     await SwiftTUIBuild.copyDomFontAssets(terminalAppDist);
   }
-  note("dist/: index.html, index.js, index.css, wasm-scene-worker.js");
+  note(`dist/: index.html (${renderer}), dom.html, index.js, index.css, wasm-scene-worker.js`);
 
   step("Assemble pages-dist/");
   await composePagesDist();

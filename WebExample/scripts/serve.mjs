@@ -19,6 +19,7 @@ import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { rendererFromArgs } from "./renderer.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const defaultTerminalAppDist = resolve(scriptsDirectory, "../TerminalApp/dist");
@@ -190,6 +191,7 @@ const isMainScript =
 if (isMainScript) {
   const { fail, note, step } = await import("./term-style.mjs");
   const watch = process.argv.includes("--watch");
+  const renderer = rendererFromArgs(process.argv.slice(2));
 
   if (!existsSync(join(defaultTerminalAppDist, "assets", "app.wasm"))) {
     fail(
@@ -202,7 +204,7 @@ if (isMainScript) {
     step("Watch the front-end sources");
     const esbuild = await import("esbuild");
     const { bundleOptionSets, writeIndexHtml } = await import("./build-web.mjs");
-    await writeIndexHtml();
+    await writeIndexHtml({ renderer });
     for (const options of bundleOptionSets({ dev: true })) {
       const context = await esbuild.context(options);
       await context.watch();
@@ -220,5 +222,6 @@ if (isMainScript) {
   });
   step("Serve the WebExample");
   note(`Open ${server.url}`);
+  note(`DOM variant: ${new URL("dom.html", server.url)}`);
   note("Stop the server with Ctrl-C.");
 }
