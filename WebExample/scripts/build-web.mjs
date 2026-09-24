@@ -15,6 +15,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import * as esbuild from "esbuild";
+import * as SwiftTUIBuild from "@swifttui/build";
 import { fail, note, step } from "./term-style.mjs";
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
@@ -117,6 +118,11 @@ if (isMainScript) {
     await esbuild.build(options);
   }
   await writeIndexHtml();
+  // New runtime packages ship the DOM font profile with the WASM assets.
+  // The released 0.14.0 builder predates these assets and remains supported.
+  if (typeof SwiftTUIBuild.copyDomFontAssets === "function") {
+    await SwiftTUIBuild.copyDomFontAssets(terminalAppDist);
+  }
   note("dist/: index.html, index.js, index.css, wasm-scene-worker.js");
 
   step("Assemble pages-dist/");

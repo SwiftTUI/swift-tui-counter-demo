@@ -79,7 +79,11 @@ This package has three cooperating parts:
   `WASIRunner.run(WebExampleApp.self)`.
 - **`scripts/`**: the build and serve scripts. They run on Node or Bun.
   `build-terminal.mjs` compiles the wasm and generates the manifest through
-  `@swifttui/build`. `build-web.mjs` bundles the front end with esbuild.
+  `@swifttui/build`. `build-web.mjs` bundles the front end with esbuild and
+  copies packaged DOM font assets into `TerminalApp/dist/` when the installed
+  builder provides `copyDomFontAssets`. The composed site artifact retains
+  those same-origin assets. The released 0.14.0 builder has no packaged font
+  profile and remains supported.
   `serve.mjs` serves the result with the isolation headers.
 - **`src/`**: the browser front end that mounts `WebHost` with the manifest
   and wasm file.
