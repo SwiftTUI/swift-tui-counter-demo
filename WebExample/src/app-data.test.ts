@@ -15,6 +15,26 @@ test("frontend wires opt-in frame diagnostics without importing unreleased web t
   expect(source).not.toContain("type WebHostFrameDiagnostic");
 });
 
+test("frontend wires the paint and input-write probes only with diagnostics enabled", async () => {
+  const source = await Bun.file(new URL("./frontend.ts", import.meta.url)).text();
+
+  // Both seams are newer than the released web package types, so the
+  // frontend declares its own minimal event shapes and gates the wiring on
+  // the same opt-in as the frame diagnostics.
+  expect(source).toContain("onSurfacePainted: collectSurfacePaint");
+  expect(source).toContain("onInputWritten: collectInputWrite");
+  expect(source).toContain('console.debug("SwiftTUI paint", event)');
+  expect(source).toContain('console.debug("SwiftTUI input", event)');
+  expect(source).toContain(
+    'frameDiagnosticsEnabled() ? { onSurfacePainted: collectSurfacePaint } : {}',
+  );
+  expect(source).toContain(
+    'frameDiagnosticsEnabled() ? { onInputWritten: collectInputWrite } : {}',
+  );
+  expect(source).not.toContain("type WebHostSurfacePaintedEvent");
+  expect(source).not.toContain("type WasmSceneInputWrittenEvent");
+});
+
 test("default style keeps a readable terminal baseline", () => {
   expect(defaultStyle.fontSize).toBe(16);
   expect(defaultStyle.cursorBlink).toBe(false);

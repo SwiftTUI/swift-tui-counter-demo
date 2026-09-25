@@ -44,8 +44,27 @@ interface WebHostFrameDiagnosticRecord {
   fields: string[];
 }
 
+// Diagnostic seams newer than the released 0.14.0 types: a completed
+// presenter paint (an observable presentation boundary, not a display
+// timestamp) and a settled main-thread input write. Declared locally so the
+// example keeps building against the released package; the runtime ignores
+// options it does not know.
+interface WebExampleSurfacePaintedEvent {
+  frame?: { sequence?: number; width?: number; height?: number };
+  paintedAt: number;
+  coalescedFrameCount: number;
+}
+
+interface WebExampleInputWrittenEvent {
+  bytes: number;
+  writtenAt: number;
+  status: "written" | "partial" | "closed";
+  bytesWritten: number;
+}
+
 type WebExampleSceneRuntimeOptions = WebHostSceneRuntimeOptions & {
   onFrameDiagnostic?: (diagnostic: WebHostFrameDiagnosticRecord) => void;
+  onSurfacePainted?: (event: WebExampleSurfacePaintedEvent) => void;
 };
 
 try {
@@ -227,12 +246,19 @@ async function createController(
   onSceneResize: (event: WasmSceneResizeEvent) => void,
   onRuntimeCreated: (runtime: WasmSceneRuntimeHandle) => void,
 ): Promise<WebHostAppController> {
-  const wasmRuntimeFactory = createWasmSceneRuntimeFactory(terminalAppWasmUrl, {
+  // Built as a value first so the diagnostic seam (unknown to the released
+  // factory option type) rides along without an excess-property error.
+  const wasmFactoryOptions = {
     onSceneResize,
     onRuntimeCreated,
     workerModuleURL: new URL("./wasm-scene-worker.js", import.meta.url),
     executionMode: executionModeFromQuery(),
-  });
+    ...(frameDiagnosticsEnabled() ? { onInputWritten: collectInputWrite } : {}),
+  };
+  const wasmRuntimeFactory = createWasmSceneRuntimeFactory(
+    terminalAppWasmUrl,
+    wasmFactoryOptions,
+  );
 
   // Released 0.14.0 supports DOM rendering with system fonts. Newer packages
   // provide a packaged font profile, copied alongside the manifest by the build.
@@ -364,6 +390,7 @@ function webExampleRuntimeOptions(
     synchronizeAccessibilityFocus: !isMarketingEmbed,
     wheelMode: isMarketingEmbed ? "chain" : "capture",
     onFrameDiagnostic: collectFrameDiagnostic,
+    ...(frameDiagnosticsEnabled() ? { onSurfacePainted: collectSurfacePaint } : {}),
   };
   return runtimeOptions;
 }
@@ -373,6 +400,19 @@ function collectFrameDiagnostic(diagnostic: WebHostFrameDiagnosticRecord): void 
     diagnostic.header.map((key, index) => [key, diagnostic.fields[index] ?? ""]),
   );
   console.debug("SwiftTUI frame", row);
+}
+
+// The three rows a diagnostics-enabled page emits, one per boundary: the
+// runtime's committed frame ("SwiftTUI frame"), the presenter's completed
+// paint ("SwiftTUI paint", with the applied frame for decoding), and the
+// host's settled input write ("SwiftTUI input"). The coordination root's
+// counter-burst harness joins them; nothing else reads them.
+function collectSurfacePaint(event: WebExampleSurfacePaintedEvent): void {
+  console.debug("SwiftTUI paint", event);
+}
+
+function collectInputWrite(event: WebExampleInputWrittenEvent): void {
+  console.debug("SwiftTUI input", event);
 }
 
 // Browsers reserve Shift+Tab for focus navigation, so the runtime never sees
