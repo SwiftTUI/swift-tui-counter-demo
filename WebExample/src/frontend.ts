@@ -44,7 +44,7 @@ interface WebHostFrameDiagnosticRecord {
   fields: string[];
 }
 
-// Diagnostic seams newer than the released 0.14.0 types: a completed
+// Diagnostic seams absent from packages older than 0.15.0: a completed
 // presenter paint (an observable presentation boundary, not a display
 // timestamp) and a settled main-thread input write. Declared locally so the
 // example keeps building against the released package; the runtime ignores
@@ -64,8 +64,8 @@ interface WebExampleInputWrittenEvent {
   bytesWritten: number;
 }
 
-// When the installed package declares `onSurfacePainted` itself (newer than
-// 0.14.0), defer to its declaration; otherwise add the seam locally so the
+// When the installed package declares `onSurfacePainted` itself (0.15.0 or
+// newer), defer to its declaration; otherwise add the seam locally so the
 // example still typechecks against the released package.
 type WebExampleSceneRuntimeOptions = WebHostSceneRuntimeOptions & {
   onFrameDiagnostic?: (diagnostic: WebHostFrameDiagnosticRecord) => void;
@@ -266,8 +266,8 @@ async function createController(
     wasmFactoryOptions,
   );
 
-  // Released 0.14.0 supports DOM rendering with system fonts. Newer packages
-  // provide a packaged font profile, copied alongside the manifest by the build.
+  // Packages older than 0.15.0 render the DOM with system fonts only; 0.15.0
+  // and newer provide a packaged font profile, copied beside the manifest.
   const domFontAssetPath: unknown = Reflect.get(WebHost, "DOM_FONT_ASSET_PATH");
   const packagedFonts = renderer === "dom" && typeof domFontAssetPath === "string"
     ? { domFont: { assetBase: new URL(domFontAssetPath, terminalAppManifestUrl) } }

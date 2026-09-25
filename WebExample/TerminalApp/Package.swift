@@ -19,14 +19,14 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(url: "https://github.com/SwiftTUI/swift-tui.git", exact: "0.14.0"),
+    .package(url: "https://github.com/SwiftTUI/swift-tui.git", exact: "0.15.0"),
     .package(path: "../../counter"),
   ],
   targets: [
     .target(
       name: "WebExampleScenes",
       dependencies: [
-        .product(name: "CounterCore", package: "counter"),
+        .product(name: "CounterCore", package: "counter")
       ],
       path: "Sources/WebExampleScenes"
     ),

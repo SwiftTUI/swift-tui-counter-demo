@@ -20,7 +20,7 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       const paintedText = async () => (await surface.textContent())?.replace(/\s/g, "");
       await expect.poll(paintedText).toBe("┏━┓┃┃┃┗━┛Increment");
       // CounterView centers its button in this painted row. Click the visible
-      // control: the released 0.14.0 semantic sidecar can have stale bounds.
+      // control: semantic sidecars older than 0.15.0 can have stale bounds.
       await surface.locator(".webhost-scene__surface-row").filter({ hasText: "Increment" }).click();
       await expect.poll(paintedText).toBe("╺┓┃╺┻╸Increment");
       await increment.press("Enter");

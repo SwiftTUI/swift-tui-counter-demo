@@ -34,8 +34,8 @@ performance qualification are incomplete. The demo is an evaluation surface,
 not a production-conformance claim. See the runtime's
 [DOM renderer documentation](https://github.com/SwiftTUI/swift-tui-web/tree/main/packages/web#renderers)
 for the full behavior and support boundary. Features documented at runtime HEAD
-can exceed those in this example's tagged 0.14.0 dependencies.
-In 0.14.0, the semantic sidecar's bounds can lag the visible DOM layout after
+can exceed those in this example's tagged 0.15.0 dependencies.
+In 0.15.0, the semantic sidecar's bounds can lag the visible DOM layout after
 resize. Use the visible button for pointer interaction; keyboard activation
 also works. The current runtime's correlated geometry addresses that boundary.
 
@@ -99,7 +99,7 @@ This package has three cooperating parts:
   `@swifttui/build`. `build-web.mjs` bundles the front end with esbuild and
   copies packaged DOM font assets into `TerminalApp/dist/` when the installed
   builder provides `copyDomFontAssets`. The composed site artifact retains
-  those same-origin assets. The released 0.14.0 builder has no packaged font
+  those same-origin assets. The released 0.15.0 builder has no packaged font
   profile and remains supported.
   `serve.mjs` serves the result with the isolation headers; watch mode also
   copies the font profile when available.
@@ -130,7 +130,7 @@ the default page as DOM without rebuilding WASM. The equivalent script flag is
 Watch mode accepts the same flag. From the repository root, use
 `npm run build:webexample:dom` for a complete release DOM build.
 
-The tagged 0.14.0 runtime supports this DOM variant using system fonts. When
+The tagged 0.15.0 runtime supports this DOM variant using system fonts. When
 the installed runtime and builder provide packaged DOM fonts, the build copies
 them and the DOM mount loads them from the same origin. The readiness signal
 waits for visible committed DOM rows in DOM mode and painted pixels in Canvas

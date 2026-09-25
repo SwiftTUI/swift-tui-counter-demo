@@ -85,7 +85,7 @@ export async function writeIndexHtml({ renderer = "canvas" } = {}) {
 
 /** Keep production and watch-mode assets aligned across builder versions. */
 export async function prepareDomFontAssets() {
-  // The released 0.14.0 builder predates these assets and remains supported.
+  // Builders older than 0.15.0 predate these assets and remain supported.
   if (typeof SwiftTUIBuild.copyDomFontAssets === "function") {
     await SwiftTUIBuild.copyDomFontAssets(terminalAppDist);
   }
