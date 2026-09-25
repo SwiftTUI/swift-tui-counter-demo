@@ -50,7 +50,9 @@ interface WebHostFrameDiagnosticRecord {
 // example keeps building against the released package; the runtime ignores
 // options it does not know.
 interface WebExampleSurfacePaintedEvent {
-  frame?: { sequence?: number; width?: number; height?: number };
+  // `unknown` keeps this a supertype of the package's event whether or not the
+  // installed package declares the seam: the row only forwards the frame.
+  frame?: unknown;
   paintedAt: number;
   coalescedFrameCount: number;
 }
@@ -62,10 +64,14 @@ interface WebExampleInputWrittenEvent {
   bytesWritten: number;
 }
 
+// When the installed package declares `onSurfacePainted` itself (newer than
+// 0.14.0), defer to its declaration; otherwise add the seam locally so the
+// example still typechecks against the released package.
 type WebExampleSceneRuntimeOptions = WebHostSceneRuntimeOptions & {
   onFrameDiagnostic?: (diagnostic: WebHostFrameDiagnosticRecord) => void;
-  onSurfacePainted?: (event: WebExampleSurfacePaintedEvent) => void;
-};
+} & ("onSurfacePainted" extends keyof WebHostSceneRuntimeOptions
+  ? unknown
+  : { onSurfacePainted?: (event: WebExampleSurfacePaintedEvent) => void });
 
 try {
   await bootstrap();
