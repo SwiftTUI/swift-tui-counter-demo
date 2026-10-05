@@ -159,7 +159,7 @@ jobs:
       - name: Install swiftly and Swift toolchain
         shell: bash
         run: swift-tui-counter-demo/Scripts/install_swift_toolchain_ci.sh swift-tui-counter-demo/.swift-version
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
       - name: Cache web build products
