@@ -18,7 +18,6 @@ import * as WebHost from "@swifttui/web";
 import {
   createWasmSceneRuntimeFactory,
   type WasmSceneRuntimeHandle,
-  type WasmSceneResizeEvent,
 } from "@swifttui/web/wasi";
 import {
   defaultStyle,
@@ -206,8 +205,7 @@ async function bootstrap(): Promise<void> {
 
   const sceneRuntimes = new Map<string, WasmSceneRuntimeHandle>();
   let controller: WebHostAppController | undefined;
-  let lastResizeEvent: WasmSceneResizeEvent | undefined;
-  const updateMetadata = (event?: WasmSceneResizeEvent) => {
+  const updateMetadata = () => {
     if (!controller) return;
     const activeScene = controller.scenes.find(
       (scene) => scene.id === controller?.selectedSceneId,
@@ -215,15 +213,10 @@ async function bootstrap(): Promise<void> {
     terminalHost.dataset.sceneId = controller.selectedSceneId;
     terminalHost.dataset.sceneTitle =
       activeScene?.title ?? activeScene?.id ?? controller.selectedSceneId;
-    if (event) terminalHost.dataset.size = `${event.columns}x${event.rows}`;
   };
 
   controller = await createController(
     terminalHost,
-    (event) => {
-      lastResizeEvent = event;
-      updateMetadata(event);
-    },
     (runtime) => sceneRuntimes.set(runtime.descriptor.id, runtime),
   );
   installShiftTabPassthrough(terminalHost, () => controller, sceneRuntimes);
@@ -233,7 +226,7 @@ async function bootstrap(): Promise<void> {
     controller.scenes[0]?.id ??
     "counter";
   await controller.switchScene(defaultScene);
-  updateMetadata(lastResizeEvent);
+  updateMetadata();
 
   await waitForCommittedFrame(terminalHost);
   shell.dataset.state = "ready";
@@ -249,13 +242,11 @@ async function bootstrap(): Promise<void> {
 // mounts the selected presenter, and connects input and resize events.
 async function createController(
   mount: HTMLElement,
-  onSceneResize: (event: WasmSceneResizeEvent) => void,
   onRuntimeCreated: (runtime: WasmSceneRuntimeHandle) => void,
 ): Promise<WebHostAppController> {
   // Built as a value first so the diagnostic seam (unknown to the released
   // factory option type) rides along without an excess-property error.
   const wasmFactoryOptions = {
-    onSceneResize,
     onRuntimeCreated,
     workerModuleURL: new URL("./wasm-scene-worker.js", import.meta.url),
     executionMode: executionModeFromQuery(),

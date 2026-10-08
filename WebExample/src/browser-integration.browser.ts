@@ -13,6 +13,7 @@ declare global {
   interface Window {
     __swiftTUIFrameDiagnostics?: FrameDiagnosticRow[];
     __swiftTUICounterText?: string;
+    __swiftTUICounterFrameSize?: { columns: number; rows: number };
   }
 }
 
@@ -68,6 +69,7 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
         }
         window.__swiftTUICounterText = rows.map(rowText).join("\n");
         window.__swiftTUICounterCount = window.__swiftTUICounterValue?.(rows.map(rowText));
+        window.__swiftTUICounterFrameSize = { columns: frame.width, rows: frame.height };
       }
       return value;
     };
@@ -233,16 +235,15 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
 
     const initialResizeState = await page.waitForFunction(() => {
       const activeScene = document.querySelector(".webhost-scene:not([hidden])");
-      const host = document.querySelector<HTMLElement>(".terminal-host");
       const canvas = activeScene?.querySelector<HTMLCanvasElement>(".webhost-scene__surface");
-      const size = host?.dataset.size;
+      const size = window.__swiftTUICounterFrameSize;
       if (activeScene?.getAttribute("data-scene-id") !== "counter" || !size || !canvas) {
         return false;
       }
 
       const rect = canvas.getBoundingClientRect();
       return {
-        size,
+        ...size,
         canvasWidth: rect.width,
         canvasHeight: rect.height,
       };
@@ -252,7 +253,8 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
     });
 
     const initialResizeStateValue = await initialResizeState.jsonValue() as {
-      size: string;
+      columns: number;
+      rows: number;
       canvasWidth: number;
       canvasHeight: number;
     };
@@ -268,20 +270,22 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
     await page.setViewportSize({ width: 900, height: 620 });
     const resizedState = await page.waitForFunction((initial) => {
       const activeScene = document.querySelector(".webhost-scene:not([hidden])");
-      const host = document.querySelector<HTMLElement>(".terminal-host");
       const canvas = activeScene?.querySelector<HTMLCanvasElement>(".webhost-scene__surface");
-      const size = host?.dataset.size;
+      // Negotiated geometry bypasses the legacy bridge resize callback.
+      // Require the Swift app's emitted grid to shrink, as well as its canvas.
+      const size = window.__swiftTUICounterFrameSize;
       if (activeScene?.getAttribute("data-scene-id") !== "counter" || !size || !canvas) {
         return false;
       }
 
       const rect = canvas.getBoundingClientRect();
       const current = {
-        size,
+        ...size,
         canvasWidth: rect.width,
         canvasHeight: rect.height,
       };
-      return current.size !== initial.size &&
+      return current.columns < initial.columns &&
+        current.rows < initial.rows &&
         current.canvasWidth < initial.canvasWidth &&
         current.canvasHeight < initial.canvasHeight
         ? current
@@ -291,10 +295,18 @@ test("WebExample renders WASI surface frames into a nonblank canvas", async () =
       timeout: 30_000,
     });
     expect(await resizedState.jsonValue()).toMatchObject({
-      size: expect.any(String),
+      columns: expect.any(Number),
+      rows: expect.any(Number),
       canvasWidth: expect.any(Number),
       canvasHeight: expect.any(Number),
     });
+
+    await increment.press("Enter");
+    await page.waitForFunction(
+      () => window.__swiftTUICounterCount === 2,
+      undefined,
+      { polling: 100, timeout: 30_000 },
+    );
 
     expect(runtimeErrors).toEqual([]);
   } finally {
