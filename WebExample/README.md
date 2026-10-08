@@ -34,7 +34,7 @@ performance qualification are incomplete. The demo is an evaluation surface,
 not a production-conformance claim. See the runtime's
 [DOM renderer documentation](https://github.com/SwiftTUI/swift-tui-web/tree/main/packages/web#renderers)
 for the full behavior and support boundary. Features documented at runtime HEAD
-can exceed those in this example's tagged 0.15.1 dependencies.
+can exceed those in this example's tagged 0.16.0 dependencies.
 Before 0.15.0, the semantic sidecar's bounds could lag the visible DOM layout
 after resize; the tagged runtime's correlated geometry addresses that boundary.
 Use the visible button for pointer interaction; keyboard activation also works.
