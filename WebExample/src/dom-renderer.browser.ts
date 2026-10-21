@@ -2,7 +2,7 @@ import { chromium, expect, test, webkit } from "@playwright/test";
 import { serveBuiltWebExample } from "../scripts/serve.mjs";
 
 for (const [name, engine] of Object.entries({ chromium, webkit })) {
-  test(`DOM counter loads, increments, resizes and selects text in ${name}`, async () => {
+  test(`DOM counter loads, increments, resizes and respects text-selection boundaries in ${name}`, async () => {
     test.setTimeout(120_000);
     const server = await serveBuiltWebExample();
     let browser;
@@ -29,23 +29,23 @@ for (const [name, engine] of Object.entries({ chromium, webkit })) {
       await page.setViewportSize({ width: 375, height: 600 });
       await expect(increment).toBeVisible();
       await expect.poll(() => surface.evaluate((element) => getComputedStyle(element).fontSize)).toBe(fontSize);
+      // This scene contains graphical FIGlet digits and a button label. Both
+      // are excluded from native selection; ordinary prose selection is
+      // exercised by the web package's DOM surface browser suite.
       const selected = await page.evaluate(() => {
         const surface = document.querySelector(".webhost-scene__surface--dom")!;
-        const first = Array.from(surface.querySelectorAll(".webhost-scene__surface-row"))
-          .find((row) => row.textContent?.trim())!;
         const range = document.createRange();
-        range.selectNodeContents(first);
+        range.selectNodeContents(surface);
         const selection = document.getSelection()!;
         selection.removeAllRanges();
         selection.addRange(range);
-        const style = getComputedStyle(surface);
         return {
           text: selection.toString(),
-          selectable: style.userSelect || style.getPropertyValue("-webkit-user-select"),
+          painted: surface.textContent?.replace(/\s/g, ""),
         };
       });
-      expect(selected.text.trim()).toBeTruthy();
-      expect(selected.selectable).toBe("text");
+      expect(selected.painted).toBe("┏━┓┏━┛┗━╸Increment");
+      expect(selected.text.trim()).toBe("");
       expect(errors).toEqual([]);
     } finally {
       await browser?.close();
