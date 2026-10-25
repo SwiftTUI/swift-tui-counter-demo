@@ -5,6 +5,7 @@ import { serveBuiltWebExample } from "../scripts/serve.mjs";
 declare global {
   interface Window {
     __swiftTUIScrollFixtureFrames?: number;
+    __swiftTUIScrollFixturePaints?: number;
   }
 }
 
@@ -40,6 +41,35 @@ test("embedded WebHost wheels chain to the outer page only without inner headroo
             await context.addInitScript(() => {
               const originalParse = JSON.parse;
               window.__swiftTUIScrollFixtureFrames = 0;
+              window.__swiftTUIScrollFixturePaints = 0;
+              // Pointer input is routed only once a frame at the requested
+              // geometry is presented (web README geometry-revision contract),
+              // so readiness is a painted frame carrying the fixture's scroll
+              // region, not merely a decoded one (STUI-1207).
+              try {
+                // frontend.ts installs onSurfacePainted (console.debug
+                // "SwiftTUI paint") when frame diagnostics are enabled.
+                localStorage.swiftTUIFrameDiagnostics = "1";
+              } catch {
+                // Storage can be unavailable; the paint wait then times out loudly.
+              }
+              const originalDebug = console.debug;
+              console.debug = function patchedDebug(...args: unknown[]) {
+                const fixtureMode = new URLSearchParams(window.location.search)
+                  .get("scrollChainFixture");
+                const event = args[1] as { frame?: { scrollRegions?: Array<{ id?: unknown }> } };
+                if (args[0] === "SwiftTUI paint" && fixtureMode) {
+                  const regions = event?.frame?.scrollRegions ?? [];
+                  if (
+                    fixtureMode === "none"
+                    || regions.some((region) => region.id === "browser-scroll-chain-fixture")
+                  ) {
+                    window.__swiftTUIScrollFixturePaints =
+                      (window.__swiftTUIScrollFixturePaints ?? 0) + 1;
+                  }
+                }
+                return originalDebug.apply(this, args);
+              };
 
               JSON.parse = function patchedJSONParse(
                 text: string,
@@ -101,7 +131,7 @@ test("embedded WebHost wheels chain to the outer page only without inner headroo
               timeout: 60_000,
             });
             await childFrame.waitForFunction(
-              () => (window.__swiftTUIScrollFixtureFrames ?? 0) > 0,
+              () => (window.__swiftTUIScrollFixturePaints ?? 0) > 0,
               undefined,
               { timeout: 60_000 },
             );
