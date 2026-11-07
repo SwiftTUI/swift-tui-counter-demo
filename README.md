@@ -164,3 +164,8 @@ under Node with one worker and no retries.
 ## License
 
 MIT; see [LICENSE](LICENSE).
+
+## Version compatibility
+
+See the [compatibility policy](docs/COMPATIBILITY.md) for supported minor lines,
+independent dependency adoption, and experimental interfaces.
