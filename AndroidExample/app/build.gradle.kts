@@ -4,7 +4,7 @@ plugins {
   // Cross-builds the Swift host product for Android and copies it, plus the
   // Swift runtime, into this app's jniLibs. Everything below the
   // `swiftTuiAndroidHost { }` block is ordinary Android configuration.
-  id("sh.swifttui.android") version "0.21.0"
+  id("sh.swifttui.android") version "0.22.0"
 }
 
 android {
@@ -64,7 +64,7 @@ swiftTuiAndroidHost {
 }
 
 dependencies {
-  implementation("sh.swifttui:android-host:0.21.0")
+  implementation("sh.swifttui:android-host:0.22.0")
 
   implementation(platform("androidx.compose:compose-bom:2026.08.00"))
   implementation("androidx.activity:activity-compose:1.13.0")
