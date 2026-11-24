@@ -7,7 +7,7 @@
     },
     "WebExample": {
       "name": "web-example",
-      "version": "0.22.0",
+      "version": "0.22.1",
       "dependencies": {
         "@swifttui/build": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.22.0/swifttui-build-0.22.0.tgz",
         "@swifttui/web": "https://github.com/SwiftTUI/swift-tui-web/releases/download/0.22.0/swifttui-web-0.22.0.tgz",
