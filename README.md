@@ -29,7 +29,7 @@ Each host declares its own `App` and connects it to the platform's infrastructur
   toolchain in `.swift-version`, and swiftly reads that file.
 - The native SwiftUI window requires macOS 15 or later.
 - The browser host requires Node.js 18 or later, a JavaScript package
-  manager like npm, and `swift-6.4.0-RELEASE_wasm` installed via [swiftly](https://www.swift.org/install).
+  manager like npm, and `swift-6.4.3-RELEASE_wasm` installed via [swiftly](https://www.swift.org/install).
 - The Android host requires the Android SDK, an NDK, and the Swift Android SDK installed via [swiftly](https://www.swift.org/install).
   
 ## Quick start
@@ -74,7 +74,7 @@ mixed SwiftTUI + SwiftUI files need.
 The browser host compiles the app to WebAssembly and mounts it on a canvas.
 It has two extra requirements:
 
-1. The `swift-6.4.0-RELEASE_wasm` Swift SDK. If the SDK is missing, the build
+1. The `swift-6.4.3-RELEASE_wasm` Swift SDK. If the SDK is missing, the build
    stops and prints the exact install command.
 2. [Binaryen](https://github.com/WebAssembly/binaryen) (`wasm-opt`), optional
    but recommended for wasm binary optimization. (The <https://SwiftTUI.sh> website also

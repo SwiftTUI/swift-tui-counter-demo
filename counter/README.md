@@ -60,7 +60,7 @@ You can also build the **static WASI bundle** for the browser host directly.
 ```bash
 swiftly run swift build \
   --package-path counter \
-  --swift-sdk swift-6.4.0-RELEASE_wasm \
+  --swift-sdk swift-6.4.3-RELEASE_wasm \
   -c release \
   -Xswiftc -Osize \
   -Xswiftc -Xfrontend -Xswiftc -disable-llvm-merge-functions-pass \

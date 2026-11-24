@@ -6,7 +6,7 @@
 //                                           optimized and stripped
 //
 // The script runs on Node 18+ or Bun; any npm setup can invoke it. The Swift
-// side needs the swiftly toolchain manager and the swift-6.4.0-RELEASE_wasm
+// side needs the swiftly toolchain manager and the swift-6.4.3-RELEASE_wasm
 // SDK. The preflight below checks both and explains how to install them.
 
 import { spawnSync } from "node:child_process";
@@ -22,11 +22,11 @@ const outputDirectory = resolve(scriptsDirectory, "../TerminalApp/dist");
 const webDistDirectory = resolve(scriptsDirectory, "../dist");
 const appExecutable = "WebExampleApp";
 
-const wasmSdk = "swift-6.4.0-RELEASE_wasm";
+const wasmSdk = "swift-6.4.3-RELEASE_wasm";
 const wasmSdkUrl =
-  `https://download.swift.org/swift-6.4.0-release/wasm-sdk/swift-6.4.0-RELEASE/${wasmSdk}.artifactbundle.tar.gz`;
+  `https://download.swift.org/swift-6.4.3-release/wasm-sdk/swift-6.4.3-RELEASE/${wasmSdk}.artifactbundle.tar.gz`;
 const wasmSdkChecksum =
-  "f07b7be3c586d92d7a07051fc6d303b87ebea67eadc40640ba59d5a8b79aa86d";
+  "5f24408dc9737ce4cb23b7e3ed4306cabfa02cc02f22ab260b14579b955d4b12";
 
 const configuration = parseConfiguration(process.argv.slice(2));
 const startedAt = Date.now();

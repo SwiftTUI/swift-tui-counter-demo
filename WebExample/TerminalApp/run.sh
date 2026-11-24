@@ -5,9 +5,9 @@
 
 set -euo pipefail
 
-wasm_sdk="swift-6.4.0-RELEASE_wasm"
-wasm_sdk_url="https://download.swift.org/swift-6.4.0-release/wasm-sdk/swift-6.4.0-RELEASE/${wasm_sdk}.artifactbundle.tar.gz"
-wasm_sdk_checksum="f07b7be3c586d92d7a07051fc6d303b87ebea67eadc40640ba59d5a8b79aa86d"
+wasm_sdk="swift-6.4.3-RELEASE_wasm"
+wasm_sdk_url="https://download.swift.org/swift-6.4.3-release/wasm-sdk/swift-6.4.3-RELEASE/${wasm_sdk}.artifactbundle.tar.gz"
+wasm_sdk_checksum="5f24408dc9737ce4cb23b7e3ed4306cabfa02cc02f22ab260b14579b955d4b12"
 
 swift_args=(
   --swift-sdk "$wasm_sdk"
