@@ -26,8 +26,8 @@ things:
 1. The Android SDK, with Platform 37.1. Android Studio installs it.
 2. Android NDK `30.0.16248370`. The build uses it to strip the packaged
    libraries.
-3. Swift 6.4.0, through [swiftly](https://www.swift.org/swiftly/).
-4. The `swift-6.4.0-RELEASE_android` Swift SDK bundle, to cross-compile the
+3. Swift 6.4.3, through [swiftly](https://www.swift.org/swiftly/).
+4. The `swift-6.4.3-RELEASE_android` Swift SDK bundle, to cross-compile the
    app.
 
 Materialize the Swift Android SDK's `ndk-sysroot` one time after you install
@@ -35,7 +35,7 @@ the bundle:
 
 ```bash
 ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/30.0.16248370" \
-  "$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.0-RELEASE_android.artifactbundle/swift-android/scripts/setup-android-sdk.sh"
+  "$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.3-RELEASE_android.artifactbundle/swift-android/scripts/setup-android-sdk.sh"
 ```
 
 If the toolchains are not on the default paths, name them on the command line:
@@ -44,9 +44,13 @@ If the toolchains are not on the default paths, name them on the command line:
 JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
 ANDROID_HOME="$HOME/Library/Android/sdk" \
 ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk/30.0.16248370" \
-SWIFT_ANDROID_SDK_BUNDLE="$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.0-RELEASE_android.artifactbundle" \
+SWIFT_ANDROID_SDK_BUNDLE="$HOME/Library/org.swift.swiftpm/swift-sdks/swift-6.4.3-RELEASE_android.artifactbundle" \
   ./gradlew :app:assembleDebug
 ```
+
+When upgrading an app previously built with Swift 6.4.0, run `./gradlew
+:app:clean` once before building with 6.4.3. This removes the old SDK link from
+the app’s generated SwiftPM search directory.
 
 The first build is slow. It compiles the SwiftTUI framework for Android from
 source.
